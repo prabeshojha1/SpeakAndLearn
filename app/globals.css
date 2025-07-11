@@ -20,7 +20,68 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(to right, #007bff, #00c6ff); /* Blue gradient background */
+  color: #ffffff; /* White text for contrast */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern font */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  /* Removed padding-top from body */
+}
+
+/* Enhancements for a modern look */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.card {
+  background-color: rgba(255, 255, 255, 0.1); /* Slightly transparent white */
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba( 255, 255, 255, 0.18 );
+}
+
+/* Adjustments for existing elements if needed, based on their class names in page.js */
+.grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+main {
+  text-align: center;
+  padding: 2rem;
+  border-radius: 15px;
+  /* Removed background styles to inherit body gradient */
+}
+
+footer {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+a {
+  color: #e0f2fe; /* Light blue for links */
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #90caf9; /* Lighter blue on hover */
+  text-decoration: underline;
+}
+
+code {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0.2rem 0.5rem;
+  border-radius: 5px;
+  color: #fff;
 }
