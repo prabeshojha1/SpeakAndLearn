@@ -15,7 +15,50 @@ const subjectColors = {
 };
 
 export default function PlayerQuizzesPage() {
-  const { quizzes } = useQuiz();
+  const { quizzes, loading, error, refreshQuizzes } = useQuiz();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen animated-gradient">
+        <main className="container mx-auto p-4 sm:p-6 lg:p-8">
+          <div className="mb-8 text-center">
+            <h1 className="text-4xl font-extrabold text-gray-800 mb-2">Explore Quizzes</h1>
+            <p className="text-lg text-gray-600">Choose a topic to start learning!</p>
+          </div>
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-pink-500"></div>
+          </div>
+        </main>
+        <StudentFooter />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen animated-gradient">
+        <main className="container mx-auto p-4 sm:p-6 lg:p-8">
+          <div className="mb-8 text-center">
+            <h1 className="text-4xl font-extrabold text-gray-800 mb-2">Explore Quizzes</h1>
+            <p className="text-lg text-gray-600">Choose a topic to start learning!</p>
+          </div>
+          <div className="text-center">
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              <p className="font-bold">Error loading quizzes</p>
+              <p>{error}</p>
+            </div>
+            <button 
+              onClick={refreshQuizzes}
+              className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded"
+            >
+              Try Again
+            </button>
+          </div>
+        </main>
+        <StudentFooter />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen animated-gradient">
@@ -25,24 +68,44 @@ export default function PlayerQuizzesPage() {
              <p className="text-lg text-gray-600">Choose a topic to start learning!</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {quizzes.map(quiz => {
-            const colors = subjectColors[quiz.subject] || subjectColors.Default;
-            return (
-                <Link href={`/quizzes/${quiz.id}`} key={quiz.id}>
-                  <div className={`bg-white/70 ${colors.bg} rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 border-2 border-transparent ${colors.border}`}>
-                    <div className="p-6">
-                      <div className={`inline-block px-3 py-1 text-sm font-semibold rounded-full ${colors.tag} mb-3`}>
-                        {quiz.subject}
+        {quizzes.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+              <p className="font-bold">No quizzes available</p>
+              <p>Check back later for new quizzes!</p>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {quizzes.map(quiz => {
+              const colors = subjectColors[quiz.subject] || subjectColors.Default;
+              return (
+                  <Link href={`/quizzes/${quiz.id}`} key={quiz.id}>
+                    <div className={`bg-white/70 ${colors.bg} rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 border-2 border-transparent ${colors.border}`}>
+                      <div className="p-6">
+                        <div className={`inline-block px-3 py-1 text-sm font-semibold rounded-full ${colors.tag} mb-3`}>
+                          {quiz.subject}
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">{quiz.title}</h2>
+                        <p className="text-gray-600">{quiz.description}</p>
+                        {quiz.difficulty && (
+                          <div className="mt-2">
+                            <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${
+                              quiz.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
+                              quiz.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1)}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <h2 className="text-2xl font-bold text-gray-800 mb-2">{quiz.title}</h2>
-                      <p className="text-gray-600">{quiz.description}</p>
                     </div>
-                  </div>
-                </Link>
-            )
-          })}
-        </div>
+                  </Link>
+              )
+            })}
+          </div>
+        )}
       </main>
       <StudentFooter />
     </div>
