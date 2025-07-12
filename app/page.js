@@ -87,7 +87,7 @@ const SocialProofSection = () => {
       
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
        
-          <figure className="bg-off-white p-8 rounded-2xl shadow-lg border border-slate-100 relative">
+          <figure className="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 relative">
             
             <FaQuoteLeft className="absolute top-6 left-6 w-8 h-8 text-slate-200" aria-hidden="true" />
             <blockquote className="relative z-10 italic text-slate-700 text-lg">

@@ -3,25 +3,25 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useSupabase } from './SupabaseContext';
 
-const QuizContext = createContext();
+const GameContext = createContext();
 
-export function QuizProvider({ children }) {
-  const [quizzes, setQuizzes] = useState([]);
+export function GameProvider({ children }) {
+  const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { supabase } = useSupabase();
 
-  // Fetch quizzes from database
-  const fetchQuizzes = async () => {
+  // Fetch games from database
+  const fetchGames = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('Fetching quizzes from database...');
+      console.log('Fetching games from database...');
       
       // First, let's try a simple query without the questions join
       const { data, error } = await supabase
-        .from('quizzes')
+        .from('games')
         .select(`
           id,
           title,
@@ -44,19 +44,19 @@ export function QuizProvider({ children }) {
       }
 
       if (!data || data.length === 0) {
-        console.log('No quizzes found in database');
-        setQuizzes([]);
+        console.log('No games found in database');
+        setGames([]);
         return;
       }
 
       // Transform the data to match the expected format
-      const transformedQuizzes = data.map(quiz => ({
-        id: quiz.id,
-        title: quiz.title,
-        description: quiz.description || 'No description available',
-        category: quiz.category,
-        subject: quiz.subject,
-        difficulty: quiz.difficulty || 'medium',
+      const transformedGames = data.map(game => ({
+        id: game.id,
+        title: game.title,
+        description: game.description || 'No description available',
+        category: game.category,
+        subject: game.subject,
+        difficulty: game.difficulty || 'medium',
         coverImageUrl: '/placeholder.svg', // Default cover image
         expectedTimeSec: 300, // Default time
         questions: [ // Default questions for now since questions table is empty
@@ -67,15 +67,15 @@ export function QuizProvider({ children }) {
         ]
       }));
 
-      console.log('Transformed quizzes:', transformedQuizzes);
+      console.log('Transformed games:', transformedGames);
 
-      setQuizzes(transformedQuizzes);
+      setGames(transformedGames);
     } catch (err) {
-      console.error('Error fetching quizzes:', err);
+      console.error('Error fetching games:', err);
       setError(err.message);
       
       // Fallback to hardcoded data if database fetch fails
-      const fallbackQuizzes = [
+      const fallbackGames = [
         { 
           id: 1, 
           title: 'Life Cycles of a Plant', 
@@ -142,22 +142,22 @@ export function QuizProvider({ children }) {
         }
       ];
       
-      setQuizzes(fallbackQuizzes);
+      setGames(fallbackGames);
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch quizzes when component mounts
+  // Fetch games when component mounts
   useEffect(() => {
     if (supabase) {
-      fetchQuizzes();
+      fetchGames();
     }
   }, [supabase]);
 
-  const addQuiz = async (quiz) => {
+  const addGame = async (game) => {
     try {
-      const {title, subject, description, question_time_duration, questions} = quiz ;
+      const {title, subject, description, question_time_duration, questions} = game ;
       const newQuiz = {
         title,
         category: subject,
@@ -166,12 +166,12 @@ export function QuizProvider({ children }) {
         question_time_duration
       }
       const { data, error } = await supabase
-        .from('quizzes')
+        .from('games')
         .insert([newQuiz])
         .select()
         .single();
       
-      // Used data from created quiz to get the ID for the questions
+      // Used data from created game to get the ID for the questions
       for (const fileObj of questions) {
         let questionInfo = {
           quiz_id: data.id,
@@ -191,34 +191,34 @@ export function QuizProvider({ children }) {
         }
       }
 
-      await fetchQuizzes();
+      await fetchGames();
       console.log('Quiz added successfully:', data);
       return data;
     } catch (err) {
-      console.error('Error adding quiz:', err);
+      console.error('Error adding game:', err);
       throw err;
     }
   };
   
-  const getQuizById = (id) => {
-    return quizzes.find(quiz => quiz.id === parseInt(id));
+  const getGameById = (id) => {
+    return games.find(game => game.id === parseInt(id));
   };
 
-  const getQuizzesByDifficulty = (difficulty) => {
-    return quizzes.filter(quiz => quiz.difficulty === difficulty);
+  const getGamesByDifficulty = (difficulty) => {
+    return games.filter(game => game.difficulty === difficulty);
   };
 
-  const getQuizzesByCategory = (category) => {
-    return quizzes.filter(quiz => quiz.category === category);
+  const getGamesByCategory = (category) => {
+    return games.filter(game => game.category === category);
   };
 
-  const refreshQuizzes = () => {
-    fetchQuizzes();
+  const refreshGame = () => {
+    fetchGames();
   };
 
-  const deleteQuiz = async (id) => {
+  const deleteGame = async (id) => {
   try {
-    // 1. Get all questions for the quiz
+    // 1. Get all questions for the game
     const { data: questions, error: fetchError } = await supabase
       .from('questions')
       .select('id, image_url')
@@ -230,7 +230,7 @@ export function QuizProvider({ children }) {
     }
 
     // 2. Extract storage paths from image URLs
-    console.log(`Questions to delete for quiz ${id}:`, questions);
+    console.log(`Questions to delete for game ${id}:`, questions);
     const pathsToDelete = questions
       .map((q) => {
         try {
@@ -262,7 +262,7 @@ export function QuizProvider({ children }) {
       }
     }
 
-    // 4. Delete questions related to quiz
+    // 4. Delete questions related to game
     const { error: questionsDeleteError } = await supabase
       .from('questions')
       .delete()
@@ -273,32 +273,32 @@ export function QuizProvider({ children }) {
       throw questionsDeleteError;
     }
 
-    // 5. Delete quiz itself
-    const { error: quizDeleteError } = await supabase
-      .from('quizzes')
+    // 5. Delete game itself
+    const { error: gameDeleteError } = await supabase
+      .from('games')
       .delete()
       .eq('id', id);
 
-    if (quizDeleteError) {
-      console.error('Error deleting quiz:', quizDeleteError);
-      throw quizDeleteError;
+    if (gameDeleteError) {
+      console.error('Error deleting game:', gameDeleteError);
+      throw gameDeleteError;
     }
 
  
-    await fetchQuizzes();
+    await fetchGames();
     console.log(`Quiz ${id} and related questions/files deleted.`);
     } catch (err) {
-      console.error('Error deleting quiz:', err); 
+      console.error('Error deleting game:', err); 
       throw err;
     }
   }
 
-  const getQuestionsByQuizId = async (quizId) => {
+  const getQuestionsByGameId = async (gameId) => {
     try {
       const { data, error } = await supabase
         .from('questions')
         .select('id, image_url, question_text, correct_answer')
-        .eq('quiz_id', quizId);
+        .eq('quiz_id', gameId);
 
       if (error) {
         console.error('Error fetching questions:', error);
@@ -307,7 +307,7 @@ export function QuizProvider({ children }) {
 
       return data.map(question => ({
         id: question.id,
-        quiz_id: quizId,
+        quiz_id: gameId,
         imageUrl: question.image_url,
         description: question.question_text || '',
         answer: question.correct_answer || ''
@@ -319,27 +319,27 @@ export function QuizProvider({ children }) {
   }
 
   return (
-    <QuizContext.Provider value={{ 
-      quizzes, 
+    <GameContext.Provider value={{ 
+      games, 
       loading,
       error,
-      addQuiz, 
-      getQuizById, 
-      getQuizzesByDifficulty, 
-      getQuizzesByCategory,
-      refreshQuizzes,
-      deleteQuiz,
-      getQuestionsByQuizId
+      addGame, 
+      getGameById, 
+      getGamesByDifficulty, 
+      getGamesByCategory,
+      refreshGame,
+      deleteGame,
+      getQuestionsByGameId
     }}>
       {children}
-    </QuizContext.Provider>
+    </GameContext.Provider>
   );
 }
 
-export function useQuiz() {
-  const context = useContext(QuizContext);
+export function useGame() {
+  const context = useContext(GameContext);
   if (!context) {
-    throw new Error('useQuiz must be used within a QuizProvider');
+    throw new Error('useGame must be used within a GameProvider');
   }
   return context;
 } 

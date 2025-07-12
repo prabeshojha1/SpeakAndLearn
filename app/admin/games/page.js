@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { useQuiz } from '@/app/context/QuizContext';
+import { useGame } from '@/app/context/GameContext';
 import { FaPlus, FaTrash } from 'react-icons/fa';
 
 const subjectColors = {
@@ -14,8 +14,8 @@ const subjectColors = {
   Default: 'bg-gray-200 border-gray-400',
 };
 
-export default function AdminQuizzesPage() {
-  const { games, loading, error, refreshQuizzes, deleteQuiz } = useQuiz();
+export default function AdminGamesPage() {
+  const { games, loading, error, refreshGames, deleteGame } = useGame();
 
   if (loading) {
     return (
@@ -67,7 +67,7 @@ export default function AdminQuizzesPage() {
               <p>{error}</p>
             </div>
             <button 
-              onClick={refreshQuizzes}
+              onClick={refreshGames}
               className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"> {/* Changed from bg-pink-500 and hover:bg-pink-600 */}
               Try Again
             </button>
@@ -98,30 +98,30 @@ export default function AdminQuizzesPage() {
           <div className="text-center py-12">
             <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
               <p className="font-bold">No games created yet</p>
-              <p>Click "New Game" to create your first quiz!</p>
+              <p>Click "New Game" to create your first game!</p>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
-            {games.map(quiz => (
+            {games.map(game => (
               <div 
-                key={quiz.id} 
-                className={`p-4 rounded-2xl border-2 shadow-sm flex justify-between items-center ${subjectColors[quiz.subject] || subjectColors.Default}`}
+                key={game.id} 
+                className={`p-4 rounded-2xl border-2 shadow-sm flex justify-between items-center ${subjectColors[game.subject] || subjectColors.Default}`}
               >
-                <Link href={`/admin/games/${quiz.id}/view`} className="flex-grow">
-                  <h2 className="text-xl font-bold text-gray-800">{quiz.title}</h2>
-                  <p className="text-gray-600">{quiz.description}</p>
-                  {quiz.difficulty && (
+                <Link href={`/admin/games/${game.id}/view`} className="flex-grow">
+                  <h2 className="text-xl font-bold text-gray-800">{game.title}</h2>
+                  <p className="text-gray-600">{game.description}</p>
+                  {game.difficulty && (
                     <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full mt-1 ${
-                      quiz.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
-                      quiz.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      game.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
+                      game.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-red-100 text-red-800'
                     }`}>
-                      {quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1)}
+                      {game.difficulty.charAt(0).toUpperCase() + game.difficulty.slice(1)}
                     </span>
                   )}
                 </Link>
-                <button  onClick={() => {deleteQuiz(quiz.id);}} 
+                <button  onClick={() => {deleteGame(game.id);}} 
                   className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 transition-colors">
                   <FaTrash size={20} />
                 </button>
