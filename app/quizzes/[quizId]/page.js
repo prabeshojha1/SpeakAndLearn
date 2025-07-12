@@ -82,12 +82,11 @@ export default function QuizDetailPage({ params }) {
             
             <div className="mb-6">
                 <h3 className="text-xl font-semibold mb-3 text-gray-700">A Sneak Peek</h3>
-                <div className="flex items-center gap-4 p-4 bg-pink-50/50 rounded-lg">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4 bg-gray-50 rounded-lg"> {/* Changed to grid, responsive columns, and neutral background */}
                     {quiz.questions.map((q, index) => (
-                        <React.Fragment key={q.imageUrl + index}>
-                            <img src={q.imageUrl} alt={`Question ${index + 1}`} className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg bg-gray-200 shadow-sm" />
-                            {index < quiz.questions.length - 1 && <div className="text-2xl font-bold text-pink-400">&rarr;</div>}
-                        </React.Fragment>
+                        <div key={q.imageUrl + index} className="relative w-full aspect-square"> {/* Use aspect-square to ensure square images */}
+                            <img src={q.imageUrl} alt={`Question ${index + 1}`} className="object-cover rounded-lg bg-gray-200 shadow-sm w-full h-full" /> {/* Make image fill its square container */}
+                        </div>
                     ))}
                 </div>
             </div>

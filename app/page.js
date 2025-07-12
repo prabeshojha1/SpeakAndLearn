@@ -16,7 +16,7 @@ const HeroSection = () => {
           <span className="block text-yellow-300">Where Learning Meets Speaking and Fun</span>
         </h1>
         <p className="mt-6 text-lg text-white/90 max-w-3xl">
-          A revolutionary tool that helps kids learn by speaking, featuring interactive quizzes, creative challenges, and real-time growth.
+          A revolutionary tool designed to make learning fun for kids through speaking, packed with interactive quizzes, exciting creative challenges, and real-time feedback.
         </p>
         <div className="mt-12 flex flex-col sm:flex-row justify-center items-center gap-6">
           <Link href={user ? "/quizzes" : "/auth"}>
@@ -87,7 +87,7 @@ const SocialProofSection = () => {
       
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
        
-          <figure className="bg-off-white p-8 rounded-2xl shadow-lg border border-slate-100 relative">
+          <figure className="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 relative">
             
             <FaQuoteLeft className="absolute top-6 left-6 w-8 h-8 text-slate-200" aria-hidden="true" />
             <blockquote className="relative z-10 italic text-slate-700 text-lg">

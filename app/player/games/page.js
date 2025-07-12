@@ -30,9 +30,9 @@ const defaultImage = "/pictures/SA-pumpkins.jpg";
 
 export default function PlayerGamesPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="mb-12 text-center">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <main className="container mx-auto p-4 sm:p-6 lg:p-8 flex-grow flex flex-col items-center"> {/* Removed justify-center to align content to the top */}
+        <div className="mb-12 text-center mt-12"> {/* Added mt-12 for top margin */}
           <h1 className="text-5xl font-extrabold text-gray-900 mb-3">Interactive Games</h1>
           <p className="text-xl text-gray-600">Sharpen your skills with these fun and engaging games!</p>
         </div>
