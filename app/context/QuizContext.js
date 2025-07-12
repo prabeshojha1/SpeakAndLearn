@@ -291,6 +291,31 @@ export function QuizProvider({ children }) {
     }
   }
 
+  const getQuestionsByQuizId = async (quizId) => {
+    try {
+      const { data, error } = await supabase
+        .from('questions')
+        .select('id, image_url, question_text, correct_answer')
+        .eq('quiz_id', quizId);
+
+      if (error) {
+        console.error('Error fetching questions:', error);
+        throw error;
+      }
+
+      return data.map(question => ({
+        id: question.id,
+        quiz_id: quizId,
+        imageUrl: question.image_url,
+        description: question.question_text || '',
+        answer: question.correct_answer || ''
+      }));
+    } catch (err) {
+      console.error('Error getting questions:', err);
+      throw err;
+    }
+  }
+
   return (
     <QuizContext.Provider value={{ 
       quizzes, 
@@ -301,7 +326,8 @@ export function QuizProvider({ children }) {
       getQuizzesByDifficulty, 
       getQuizzesByCategory,
       refreshQuizzes,
-      deleteQuiz 
+      deleteQuiz,
+      getQuestionsByQuizId
     }}>
       {children}
     </QuizContext.Provider>
