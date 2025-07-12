@@ -2,15 +2,19 @@
 "use client";
 
 import Link from 'next/link';
-import React from 'react';
-import StudentHeader from '@/app/components/StudentHeader';
+import React, { useState, use } from 'react';
 import { useQuiz } from '@/app/context/QuizContext';
-import { useEffect, useState } from 'react';
+import { useSupabase } from '@/app/context/SupabaseContext';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function QuizDetailPage({ params }) {
-  const { quizId } = params;
+  const { quizId } = use(params);
   const { getQuizById } = useQuiz();
+  const { supabase } = useSupabase();
   const [quiz, setQuiz] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (quizId) {
@@ -19,13 +23,57 @@ export default function QuizDetailPage({ params }) {
     }
   }, [quizId, getQuizById]);
 
+  const handleStartQuiz = async () => {
+    setIsLoading(true);
+    try {
+      // Get the current session to include in the API call
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        alert('Please log in to start the quiz.');
+        router.push('/auth');
+        return;
+      }
+
+      console.log('Quiz ID (UUID):', quizId);
+      console.log('User ID:', session.user.id);
+
+      // Create game session using the database helper via API
+      const response = await fetch('/api/game-sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ 
+          quizId: quizId // Now a proper UUID
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to start quiz');
+      }
+
+      const gameSession = await response.json();
+      console.log('Game session created:', gameSession);
+      
+      // Redirect to play page
+      router.push(`/quizzes/${quiz.id}/play`);
+    } catch (error) {
+      console.error('Error starting quiz:', error);
+      alert('Failed to start quiz. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!quiz) {
     return <div className="min-h-screen animated-gradient flex items-center justify-center"><p>Loading...</p></div>;
   }
 
   return (
     <div className="min-h-screen animated-gradient">
-       <StudentHeader />
       <main className="container mx-auto p-4 sm:p-6 lg:p-8 flex justify-center">
         <div className="bg-white/80 p-8 rounded-2xl shadow-xl max-w-4xl w-full">
             <img src={quiz.coverImageUrl || '/placeholder.svg'} alt={quiz.title} className="w-full h-64 object-cover rounded-lg mb-6 bg-gray-200" />
@@ -46,11 +94,13 @@ export default function QuizDetailPage({ params }) {
 
             <p className="text-lg font-semibold mb-8 text-gray-600">Expected time: {quiz.expectedTimeSec ? `${Math.floor(quiz.expectedTimeSec / 60)} minutes` : 'N/A'}</p>
 
-            <Link href={`/quizzes/${quiz.id}/play`}>
-                <button className="w-full bg-pink-500 text-white font-bold py-4 px-8 rounded-xl text-2xl hover:bg-pink-600 transition-all transform hover:scale-105 shadow-lg">
-                    Let's Go!
-                </button>
-            </Link>
+            <button 
+              onClick={handleStartQuiz}
+              disabled={isLoading}
+              className="w-full bg-pink-500 text-white font-bold py-4 px-8 rounded-xl text-2xl hover:bg-pink-600 transition-all transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {isLoading ? 'Starting Quiz...' : "Let's Go!"}
+            </button>
         </div>
       </main>
     </div>

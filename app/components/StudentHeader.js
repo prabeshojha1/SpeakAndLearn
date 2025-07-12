@@ -1,40 +1,79 @@
+// app/components/StudentHeader.js
 
 "use client";
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FaHome, FaGamepad, FaUser } from 'react-icons/fa';
+import { useSupabase } from '../context/SupabaseContext';
+import AuthControls from './AuthControls';
 
 export default function StudentHeader() {
   const pathname = usePathname();
-
-  const navItems = [
-    { href: '/quizzes', icon: FaHome, label: 'Quizzes' },
-    { href: '/player/games', icon: FaGamepad, label: 'Games' },
-    { href: '/player/profile', icon: FaUser, label: 'Profile' },
-  ];
+  const { user } = useSupabase();
 
   return (
-    <footer className="bg-white shadow-lg z-10"> {/* Removed fixed positioning */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-around h-14">
-          {navItems.map((item) => {
-            const isActive = pathname.startsWith(item.href);
-            return (
-              <Link href={item.href} key={item.label}>
-                <div
-                  className={`flex flex-col items-center justify-center w-20 h-full transition-colors duration-300 ${
-                    isActive ? 'text-blue-500' : 'text-gray-500 hover:text-blue-400'
+    <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex h-20 items-center justify-between">
+          
+          {/* Logo / Brand Name */}
+          <div className="flex-shrink-0">
+            <Link href="/quizzes" className="flex items-center gap-3">
+              <img 
+                src="/speakandlearn.png" 
+                alt="SpeakAndLearn Logo" 
+                className="h-14 w-14 object-contain"
+              />
+              <span className="text-2xl font-bold text-gray-900">SpeakAndLearn.ai</span>
+            </Link>
+          </div>
+
+          {/* Right side - Navigation and Auth */}
+          <div className="flex items-center space-x-8">
+            {/* Navigation Links */}
+            <nav className="hidden md:flex items-center space-x-8">
+              <Link
+                href="/quizzes"
+                className={`text-base font-medium transition-colors hover:text-blue-600 ${
+                  pathname.startsWith('/quizzes') 
+                    ? 'text-blue-600' 
+                    : 'text-gray-600'
+                }`}
+              >
+                Quizzes
+              </Link>
+              
+              <Link
+                href="/player/games"
+                className={`text-base font-medium transition-colors hover:text-blue-600 ${
+                  pathname.startsWith('/player/games') 
+                    ? 'text-blue-600' 
+                    : 'text-gray-600'
+                }`}
+              >
+                Games
+              </Link>
+
+              {user && (
+                <Link
+                  href="/player/profile"
+                  className={`text-base font-medium transition-colors hover:text-blue-600 ${
+                    pathname.startsWith('/player/profile') 
+                      ? 'text-blue-600' 
+                      : 'text-gray-600'
                   }`}
                 >
-                  <item.icon size={28} />
-                  <span className="text-xs mt-1">{item.label}</span>
-                </div>
-              </Link>
-            );
-          })}
+                  Profile
+                </Link>
+              )}
+            </nav>
+
+            {/* Authentication Controls */}
+            <AuthControls />
+          </div>
+
         </div>
       </div>
-    </footer>
+    </header>
   );
 }

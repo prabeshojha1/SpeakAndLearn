@@ -1,5 +1,7 @@
 "use client";
 
+import StudentFooter from '@/app/components/StudentFooter';
+
 export default function PlayerGamesPage() {
   return (
     <div className="min-h-screen animated-gradient">
@@ -22,6 +24,7 @@ export default function PlayerGamesPage() {
           </div>
         </div>
       </main>
+      <StudentFooter />
     </div>
   );
 }
