@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import StudentHeader from '@/app/components/StudentHeader';
 import { useQuiz } from '@/app/context/QuizContext';
+import StudentFooter from '../components/StudentFooter';
 
 const subjectColors = {
   Maths: { bg: 'bg-blue-100', border: 'hover:border-blue-400', tag: 'bg-blue-200 text-blue-800' },
@@ -44,7 +45,7 @@ export default function PlayerQuizzesPage() {
           })}
         </div>
       </main>
-      <StudentHeader />
+      <StudentFooter />
     </div>
   );
 }
