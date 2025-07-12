@@ -2,7 +2,6 @@
 "use client";
 
 import Link from 'next/link';
-import StudentHeader from '@/app/components/StudentHeader';
 
 // Hardcoded data for the student's profile
 const profile = {
@@ -26,7 +25,6 @@ const subjectColors = {
 export default function PlayerProfilePage() {
   return (
     <div className="min-h-screen animated-gradient">
-      <StudentHeader />
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="bg-white/80 p-8 rounded-2xl shadow-xl max-w-3xl mx-auto">
           <h1 className="text-4xl font-extrabold text-gray-800 mb-6">Hello, {profile.name}!</h1>
