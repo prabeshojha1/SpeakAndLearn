@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import { useQuiz } from '@/app/context/QuizContext';
 import { useEffect, useState } from 'react';
+import { use } from 'react';
 
 const subjectTextColors = {
   Science: 'text-green-600',
@@ -15,15 +16,27 @@ const subjectTextColors = {
 };
 
 export default function ViewQuizPage({ params }) {
-  const { getQuizById } = useQuiz();
+  const { quizId } = use(params);
+  const { getQuizById, getQuestionsByQuizId } = useQuiz();
   const [quiz, setQuiz] = useState(null);
+  const [questions, setQuestions] = useState([]);
 
   useEffect(() => {
-    if (params.quizId) {
-        const foundQuiz = getQuizById(params.quizId);
-        setQuiz(foundQuiz);
+    if (!quizId) return;
+
+    const fetchQuizAndQuestions = async () => {
+      const foundQuiz = getQuizById(quizId);
+      setQuiz(foundQuiz);
+
+      if (foundQuiz) {
+        const questions = await getQuestionsByQuizId(quizId);
+        setQuestions(questions);
+      }
     }
-  }, [params.quizId, getQuizById]);
+
+    fetchQuizAndQuestions();
+    
+  }, [quizId, getQuizById, getQuestionsByQuizId]);
 
   if (!quiz) {
     return (
@@ -32,6 +45,9 @@ export default function ViewQuizPage({ params }) {
         </div>
     );
   }
+
+  console.log("Quiz Data:", quiz);
+  console.log("Questions Data:", questions);
 
   return (
     <div className="min-h-screen bg-blue-50"> 
@@ -47,13 +63,13 @@ export default function ViewQuizPage({ params }) {
       </header>
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Images in this Quiz</h2>
-            {quiz.questions && quiz.questions.length > 0 ? (
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Images in this Quiz</h2>
+            {questions.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                    {quiz.questions.map((q, index) => (
+                    {questions.map((q, index) => (
                         <div key={index} className="border rounded-lg p-3 bg-gray-50">
                             <img src={q.imageUrl} alt={`Question ${index + 1}`} className="w-full h-40 object-cover rounded-lg bg-gray-200 mb-3" />
-                            <p className="text-sm text-gray-700"><span className="font-bold">Answer:</span> {q.description}</p>
+                            <p className="text-sm text-gray-700"><span className="font-bold">Answer:</span> {q.answer}</p>
                         </div>
                     ))}
                 </div>

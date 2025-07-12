@@ -5,33 +5,72 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuiz } from '@/app/context/QuizContext';
 import ImageDropzone from '@/app/components/ImageDropzone';
+import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/lib/supabase'
+
 
 const subjects = ['Maths', 'Science', 'English', 'History', 'Geography'];
 
 export default function NewQuizPage() {
   const [quizFiles, setQuizFiles] = useState([]);
-  const { addQuiz } = useQuiz();
+  const { addQuiz, refreshQuizzes } = useQuiz();
   const router = useRouter();
 
   const handleFilesChange = (files) => {
     setQuizFiles(files);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
-    const newQuiz = {
-      title: formData.get('title'),
-      subject: formData.get('subject'),
-      description: formData.get('description'),
-      questions: quizFiles.map(f => ({
-        imageUrl: f.preview,
-        description: f.description
-      }))
-    };
-    addQuiz(newQuiz);
-    router.push('/admin/quizzes');
-  };
+
+    try {
+      // Upload all quiz questions files to Supabase
+      const uploadedQuestions = await Promise.all(
+        quizFiles.map(async (item) => {
+          if (!item.file) return null;
+
+          const fileExt = item.file.name.split('.').pop();
+          const fileName = `${uuidv4()}.${fileExt}`;
+          const filePath = `quizzes/${fileName}`;
+
+          const { data: uploadData, error: uploadError } = supabase.storage
+            .from('questions')
+            .upload(filePath, item.file);
+
+          if (uploadError) {
+            console.error('Upload failed:', uploadError.message);
+            return null;
+          }
+
+          const { data: publicData } = supabase.storage
+            .from('questions')
+            .getPublicUrl(filePath);
+
+          return {
+            imageUrl: publicData.publicUrl,
+            answer: item.description || '', 
+          };
+        })
+      );
+
+      const questions = uploadedQuestions.filter(Boolean);
+
+      const newQuiz = {
+        title: formData.get('title'),
+        subject: formData.get('subject'),
+        description: formData.get('description'),
+        questions,
+      };
+
+      addQuiz(newQuiz);
+      refreshQuizzes();
+      router.push('/admin/quizzes'); // To see the new quiz in the list
+
+    } catch (err) {
+      console.error('Quiz creation failed:', err);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-blue-50 text-gray-900">
