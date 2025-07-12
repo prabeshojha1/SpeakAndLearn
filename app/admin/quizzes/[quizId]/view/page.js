@@ -40,8 +40,8 @@ export default function ViewQuizPage({ params }) {
 
   if (!quiz) {
     return (
-        <div className="min-h-screen bg-pink-50 flex items-center justify-center">
-            <p className="text-xl text-pink-500">Loading quiz...</p>
+        <div className="min-h-screen bg-blue-50 flex items-center justify-center"> 
+            <p className="text-xl text-blue-500">Loading quiz...</p> 
         </div>
     );
   }
@@ -50,11 +50,11 @@ export default function ViewQuizPage({ params }) {
   console.log("Questions Data:", questions);
 
   return (
-    <div className="min-h-screen bg-pink-50">
+    <div className="min-h-screen bg-blue-50"> 
        <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
-                    <Link href="/admin/quizzes" className="text-pink-500 hover:text-pink-700 font-bold">
+                    <Link href="/admin/quizzes" className="text-blue-500 hover:text-blue-700 font-bold"> 
                         &larr; Back to Quizzes
                     </Link>
                     <h1 className={`text-2xl font-bold ${subjectTextColors[quiz.subject] || subjectTextColors.Default}`}>{quiz.title}</h1>
@@ -63,7 +63,7 @@ export default function ViewQuizPage({ params }) {
       </header>
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-bold mb-4">Images in this Quiz</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Images in this Quiz</h2>
             {questions.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {questions.map((q, index) => (

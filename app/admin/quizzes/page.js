@@ -19,13 +19,13 @@ export default function AdminQuizzesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pink-50">
+      <div className="min-h-screen bg-blue-50"> {/* Changed from bg-pink-50 */}
         <header className="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-10">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex items-center justify-between h-16">
                   <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Your Quizzes</h1>
                   <Link href="/admin/quizzes/new">
-                      <button className="flex items-center gap-2 bg-pink-500 text-white font-bold py-2 px-4 rounded-full hover:bg-pink-600 transition-transform hover:scale-105">
+                      <button className="flex items-center gap-2 bg-blue-500 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-600 transition-transform hover:scale-105"> {/* Changed from bg-pink-500 and hover:bg-pink-600 */}
                           <FaPlus />
                           <span className="hidden sm:inline">New Quiz</span>
                       </button>
@@ -36,7 +36,7 @@ export default function AdminQuizzesPage() {
         
         <main className="container mx-auto p-4 sm:p-6 lg:p-8">
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-pink-500"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500"></div> {/* Changed from border-pink-500 */}
           </div>
         </main>
       </div>
@@ -45,13 +45,13 @@ export default function AdminQuizzesPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-pink-50">
+      <div className="min-h-screen bg-blue-50"> {/* Changed from bg-pink-50 */}
         <header className="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-10">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex items-center justify-between h-16">
                   <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Your Quizzes</h1>
                   <Link href="/admin/quizzes/new">
-                      <button className="flex items-center gap-2 bg-pink-500 text-white font-bold py-2 px-4 rounded-full hover:bg-pink-600 transition-transform hover:scale-105">
+                      <button className="flex items-center gap-2 bg-blue-500 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-600 transition-transform hover:scale-105"> {/* Changed from bg-pink-500 and hover:bg-pink-600 */}
                           <FaPlus />
                           <span className="hidden sm:inline">New Quiz</span>
                       </button>
@@ -68,8 +68,7 @@ export default function AdminQuizzesPage() {
             </div>
             <button 
               onClick={refreshQuizzes}
-              className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded"
-            >
+              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"> {/* Changed from bg-pink-500 and hover:bg-pink-600 */}
               Try Again
             </button>
           </div>
@@ -79,13 +78,13 @@ export default function AdminQuizzesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-pink-50">
+    <div className="min-h-screen bg-blue-50"> {/* Changed from bg-pink-50 */}
       <header className="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-10">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Your Quizzes</h1>
                 <Link href="/admin/quizzes/new">
-                    <button className="flex items-center gap-2 bg-pink-500 text-white font-bold py-2 px-4 rounded-full hover:bg-pink-600 transition-transform hover:scale-105">
+                    <button className="flex items-center gap-2 bg-blue-500 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-600 transition-transform hover:scale-105"> {/* Changed from bg-pink-500 and hover:bg-pink-600 */}
                         <FaPlus />
                         <span className="hidden sm:inline">New Quiz</span>
                     </button>

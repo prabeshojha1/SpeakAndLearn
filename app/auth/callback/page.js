@@ -1,46 +1,59 @@
-'use client';
-
+// app/auth/callback/page.js
+"use client";
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSupabase } from '../../context/SupabaseContext';
+import { useSupabase } from '@/app/context/SupabaseContext';
 
-export default function AuthCallback() {
-  const { supabase } = useSupabase();
+const Callback = () => {
   const router = useRouter();
+  const { supabase } = useSupabase();
 
   useEffect(() => {
-    const handleAuthCallback = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Auth callback error:', error);
-          router.push('/auth?error=callback_error');
-          return;
-        }
+    const handleAuthentication = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Error getting session:', error.message);
+        router.push('/auth');
+        return;
+      }
 
-        if (data.session) {
-          // User is authenticated, redirect to home
-          router.push('/');
-        } else {
-          // No session, redirect to auth
-          router.push('/auth');
-        }
-      } catch (error) {
-        console.error('Callback handling error:', error);
-        router.push('/auth?error=callback_error');
+      if (session) {
+        // Redirect to the quizzes page upon successful login
+        router.push('/quizzes');
+      } else {
+        // Handle the case where there is no session
+        // This might happen if the user navigates here directly without logging in
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+          if (event === 'SIGNED_IN' && session) {
+            router.push('/quizzes');
+            // Clean up the subscription once we have the session
+            if (subscription) {
+              subscription.unsubscribe();
+            }
+          }
+        });
+
+        // Fallback for cases where the onAuthStateChange might not fire as expected
+        setTimeout(() => {
+            if (subscription) {
+                subscription.unsubscribe();
+            }
+            if (!session) {
+                router.push('/auth');
+            }
+        }, 5000);
       }
     };
 
-    handleAuthCallback();
+    handleAuthentication();
   }, [supabase, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Processing authentication...</p>
-      </div>
+    <div className="flex justify-center items-center h-screen">
+      <p className="text-xl">Please wait while we are redirecting you...</p>
     </div>
   );
-} 
+};
+
+export default Callback;
