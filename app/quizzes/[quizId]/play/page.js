@@ -22,6 +22,7 @@ export default function QuizPlayPage({ params }) {
   const [gameSessionId, setGameSessionId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [isProcessingLastQuestion, setIsProcessingLastQuestion] = useState(false);
 
   useEffect(() => {
     const foundQuiz = getQuizById(quizId);
@@ -32,6 +33,12 @@ export default function QuizPlayPage({ params }) {
     if (!quiz) return;
 
     setShowCountdown(true);
+    
+    // Reset processing state when moving to a new question
+    if (currentQuestionIndex < quiz.questions.length - 1) {
+      setIsProcessingLastQuestion(false);
+    }
+    
     const countdownTimer = setInterval(() => {
       setCountdown(prev => {
         if (prev === 1) {
@@ -49,19 +56,51 @@ export default function QuizPlayPage({ params }) {
   const startRecording = () => {
     setShowCountdown(false);
     setIsRecording(true);
+    
+    // If this is the last question, mark it as processing
+    if (currentQuestionIndex === quiz.questions.length - 1) {
+      console.log('Debug Play: Starting recording on last question, marking as processing');
+      setIsProcessingLastQuestion(true);
+      
+      // Safety timeout to prevent getting stuck in processing state
+      setTimeout(() => {
+        console.log('Debug Play: Safety timeout - enabling quiz completion');
+        setIsProcessingLastQuestion(false);
+      }, 30000); // 30 seconds max wait time
+    }
   };
 
   const handleRecordingComplete = (recordingData) => {
-    // Store the recording data including evaluation
-    setRecordings(prev => ({
-      ...prev,
-      [currentQuestionIndex]: recordingData
-    }));
+    console.log(`Debug Play: Recording completed for question ${currentQuestionIndex}:`, {
+      hasBase64Audio: !!recordingData.base64Audio,
+      hasTranscription: !!recordingData.transcription,
+      hasEvaluation: !!recordingData.evaluation
+    });
     
+    // Store the recording data including evaluation
+    setRecordings(prev => {
+      const updated = {
+        ...prev,
+        [currentQuestionIndex]: recordingData
+      };
+      console.log(`Debug Play: Updated recordings state:`, Object.keys(updated));
+      
+      // If this is the last question, we can now proceed with completion
+      if (currentQuestionIndex === quiz.questions.length - 1) {
+        console.log('Debug Play: Last question recording completed, enabling quiz completion');
+        setIsProcessingLastQuestion(false);
+      }
+      
+      return updated;
+    });
   };
 
   const handleTranscriptionStateChange = (isTranscribingNow) => {
     setIsTranscribing(isTranscribingNow);
+    
+    // If transcription just finished on the last question and recording is complete,
+    // the recording completion callback should handle setting isProcessingLastQuestion to false
+    console.log(`Debug Play: Transcription state changed to ${isTranscribingNow} for question ${currentQuestionIndex}`);
   };
 
   const handleNext = () => {
@@ -76,6 +115,13 @@ export default function QuizPlayPage({ params }) {
 
   const handleQuizComplete = async () => {
     setIsSubmitting(true);
+    
+    // Small delay to ensure all recordings are properly stored in state
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    console.log('Debug: Completing quiz with recordings:', recordings);
+    console.log('Debug: Recording keys:', Object.keys(recordings));
+    console.log('Debug: Expected question count:', quiz.questions.length);
     
     try {
       // Create or update game session with audio recordings
@@ -167,7 +213,9 @@ export default function QuizPlayPage({ params }) {
                   key={currentQuestionIndex}
                   onRecordingComplete={handleRecordingComplete}
                   questionIndex={currentQuestionIndex}
-                  questionText={currentQuestion.description}
+                  questionText={currentQuestion.questionText || currentQuestion.description}
+                  suggestedAnswer={currentQuestion.correct_answer || currentQuestion.answer}
+                  imageUrl={currentQuestion.imageUrl}
                   quizTitle={quiz.title}
                   isRecording={isRecording}
                   setIsRecording={setIsRecording}
@@ -178,9 +226,9 @@ export default function QuizPlayPage({ params }) {
 
             <button 
               onClick={handleNext}
-              disabled={isRecording || isSubmitting}
+              disabled={isRecording || isSubmitting || (isLastQuestion && isProcessingLastQuestion)}
               className={`w-full font-bold py-4 rounded-xl text-2xl transition-all transform hover:scale-105 ${
-                isRecording || isSubmitting
+                isRecording || isSubmitting || (isLastQuestion && isProcessingLastQuestion)
                   ? 'bg-gray-400 cursor-not-allowed text-gray-600'
                   : 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg'
               }`}

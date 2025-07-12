@@ -111,7 +111,15 @@ export async function POST(request) {
       const recordingMetadata = {};
       const evaluations = [];
       
+      console.log('Debug API: Processing recordings:', Object.keys(recordings));
+      
       for (const [questionIndex, recordingData] of Object.entries(recordings)) {
+        console.log(`Debug API: Processing question ${questionIndex}:`, {
+          hasBase64Audio: !!recordingData.base64Audio,
+          hasTranscription: !!recordingData.transcription,
+          hasEvaluation: !!recordingData.evaluation,
+          recordingDataKeys: Object.keys(recordingData)
+        });
         
         processedRecordings[questionIndex] = {
           audio_data: recordingData.base64Audio,
