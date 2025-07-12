@@ -16,10 +16,28 @@
     }
   }
 
+  @keyframes gradient-animation {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  .animated-gradient {
+    background: linear-gradient(-45deg, #1e3a8a, #3b82f6, #60a5fa, #93c5fd);
+    background-size: 400% 400%;
+    animation: gradient-animation 15s ease infinite;
+  }
+  
   
   body {
   
-    @apply bg-gradient-to-r from-blue-500/70 to-cyan-400/75;
+    /* Removed background gradient to avoid conflicts */
     
    
     color: rgb(var(--foreground));

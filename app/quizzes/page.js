@@ -1,108 +1,119 @@
-
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useQuiz } from '@/app/context/QuizContext';
 import StudentFooter from '../components/StudentFooter';
 
+// CURRENTLY HARDCODED
+const quizImages = {
+  "Solar System": "/pictures/nasagetsnewc.jpg",
+  "World Capitals": "/pictures/Botany20Bay.jpg",
+  "Basic Algebra": "/pictures/istockphoto-175432830-612x612.jpg",
+  "Chemistry Basics": "/pictures/recycled-robots1.png",
+};
+
+const defaultImage = "/pictures/SA-pumpkins.jpg";
+
 const subjectColors = {
-  Maths: { bg: 'bg-blue-100', border: 'hover:border-blue-400', tag: 'bg-blue-200 text-blue-800' },
-  Science: { bg: 'bg-green-100', border: 'hover:border-green-400', tag: 'bg-green-200 text-green-800' },
-  English: { bg: 'bg-yellow-100', border: 'hover:border-yellow-400', tag: 'bg-yellow-200 text-yellow-800' },
-  History: { bg: 'bg-red-100', border: 'hover:border-red-400', tag: 'bg-red-200 text-red-800' },
-  Geography: { bg: 'bg-purple-100', border: 'hover:border-purple-400', tag: 'bg-purple-200 text-purple-800' },
-  Default: { bg: 'bg-gray-100', border: 'hover:border-gray-400', tag: 'bg-gray-200 text-gray-800' },
+  Maths: 'text-blue-600',
+  Science: 'text-green-600',
+  English: 'text-yellow-800',
+  History: 'text-red-600',
+  Geography: 'text-purple-600',
+  Default: 'text-gray-600',
 };
 
 export default function PlayerQuizzesPage() {
-  const { quizzes, loading, error, refreshQuizzes } = useQuiz();
+  const { quizzes = [], loading, error, refreshQuizzes } = useQuiz();
 
   if (loading) {
     return (
-      <div className="min-h-screen animated-gradient">
-        <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-          <div className="mb-8 text-center">
-            <h1 className="text-4xl font-extrabold text-gray-800 mb-2">Explore Quizzes</h1>
-            <p className="text-lg text-gray-600">Choose a topic to start learning!</p>
-          </div>
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-pink-500"></div>
-          </div>
-        </main>
-        <StudentFooter />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen animated-gradient">
-        <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-          <div className="mb-8 text-center">
-            <h1 className="text-4xl font-extrabold text-gray-800 mb-2">Explore Quizzes</h1>
-            <p className="text-lg text-gray-600">Choose a topic to start learning!</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <p className="font-bold">Error loading quizzes</p>
+            <p>{error}</p>
           </div>
-          <div className="text-center">
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-              <p className="font-bold">Error loading quizzes</p>
-              <p>{error}</p>
-            </div>
-            <button 
-              onClick={refreshQuizzes}
-              className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded"
-            >
-              Try Again
-            </button>
-          </div>
-        </main>
-        <StudentFooter />
+          <button
+            onClick={refreshQuizzes}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen animated-gradient">
-      <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="mb-8 text-center">
-             <h1 className="text-4xl font-extrabold text-gray-800 mb-2">Explore Quizzes</h1>
-             <p className="text-lg text-gray-600">Choose a topic to start learning!</p>
+    <div className="min-h-screen bg-gray-50 flex flex-col"> {/* Added flex flex-col to parent div */}
+      <main className="container mx-auto p-4 sm:p-6 lg:p-8 flex-grow flex flex-col items-center justify-center"> {/* Added flex-grow, flex flex-col, items-center, justify-center */}
+        {/* Header */}
+        <div className="mb-12 text-center">
+          <h1 className="text-5xl font-extrabold text-gray-900 mb-3">Explore Quizzes</h1>
+          <p className="text-xl text-gray-600">Choose a topic to start your learning adventure!</p>
         </div>
 
         {quizzes.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
-              <p className="font-bold">No quizzes available</p>
-              <p>Check back later for new quizzes!</p>
+          <div className="text-center py-16">
+            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-6 rounded-lg shadow-md">
+              <p className="font-bold text-lg">No quizzes available right now.</p>
+              <p>Please check back later for new and exciting quizzes!</p>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {quizzes.map(quiz => {
-              const colors = subjectColors[quiz.subject] || subjectColors.Default;
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {quizzes.map((quiz) => {
+              const imageSrc = quizImages[quiz.title] || defaultImage;
+              const colorClass = subjectColors[quiz.subject] || subjectColors.Default;
+
               return (
-                  <Link href={`/quizzes/${quiz.id}`} key={quiz.id}>
-                    <div className={`bg-white/70 ${colors.bg} rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 border-2 border-transparent ${colors.border}`}>
-                      <div className="p-6">
-                        <div className={`inline-block px-3 py-1 text-sm font-semibold rounded-full ${colors.tag} mb-3`}>
-                          {quiz.subject}
-                        </div>
-                        <h2 className="text-2xl font-bold text-gray-800 mb-2">{quiz.title}</h2>
-                        <p className="text-gray-600">{quiz.description}</p>
-                        {quiz.difficulty && (
-                          <div className="mt-2">
-                            <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${
-                              quiz.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
-                              quiz.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
-                              {quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                <Link href={`/quizzes/${quiz.id}`} key={quiz.id}>
+                  <div className="bg-white rounded-2xl shadow-md overflow-hidden transition-shadow duration-300 hover:shadow-xl cursor-pointer flex flex-col h-full">
+                    {/* Image */}
+                    <div className="relative w-full h-48">
+                      <Image
+                        src={imageSrc}
+                        alt={quiz.title}
+                        fill
+                        className="object-cover"
+                      />
                     </div>
-                  </Link>
-              )
+
+                    {/* Quiz info */}
+                    <div className="p-6 flex flex-col flex-grow">
+                      <p className={`text-sm font-semibold ${colorClass} mb-1`}>{quiz.subject}</p>
+                      <h3 className="text-xl font-bold text-gray-800 mb-2">{quiz.title}</h3>
+                      <p className="text-gray-600 text-sm flex-grow">{quiz.description}</p>
+
+                      {quiz.difficulty && (
+                        <div className="mt-4">
+                          <span
+                            className={`inline-block px-3 py-1 text-xs font-bold uppercase rounded-full ${
+                              quiz.difficulty === 'easy'
+                                ? 'bg-green-100 text-green-800'
+                                : quiz.difficulty === 'medium'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {quiz.difficulty}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              );
             })}
           </div>
         )}

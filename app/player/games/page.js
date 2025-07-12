@@ -1,27 +1,63 @@
 "use client";
 
+import Link from 'next/link';
+import Image from 'next/image';
 import StudentFooter from '@/app/components/StudentFooter';
+
+// CURRENTLY HARDCODED
+const games = [
+  {
+    title: "Metaphor Match-Up",
+    description: "Match the metaphors to their meanings in this fast-paced challenge!",
+    image: "/pictures/superhero-child-jumping-against-grey-concrete-wall_411285-304.avif",
+    link: "#" 
+  },
+  {
+    title: "Synonym Scramble",
+    description: "Unscramble the letters to find the synonyms of common words.",
+    image: "/pictures/student-s-backpack-overflowing-with-books-papers_964851-5514.avif",
+    link: "#"
+  },
+  {
+    title: "Punctuation Power",
+    description: "Correct the punctuation in sentences to score points and master grammar.",
+    image: "/pictures/recycled-robots1.png",
+    link: "#"
+  }
+];
+
+const defaultImage = "/pictures/SA-pumpkins.jpg";
 
 export default function PlayerGamesPage() {
   return (
-    <div className="min-h-screen animated-gradient">
+    <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-extrabold text-gray-800 mb-2">Games</h1>
-          <p className="text-lg text-gray-600">Have fun with our interactive games!</p>
+        <div className="mb-12 text-center">
+          <h1 className="text-5xl font-extrabold text-gray-900 mb-3">Interactive Games</h1>
+          <p className="text-xl text-gray-600">Sharpen your skills with these fun and engaging games!</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Metaphors Card */}
-          <div className="bg-white/70 rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 border-2 border-transparent hover:border-blue-400">
-            <div className="p-6">
-              <div className="inline-block px-3 py-1 text-sm font-semibold rounded-full bg-blue-200 text-blue-800 mb-3">
-                English
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {games.map((game, index) => (
+            <Link href={game.link} key={index}>
+              <div className="bg-white rounded-2xl shadow-md overflow-hidden transition-shadow duration-300 hover:shadow-xl cursor-pointer flex flex-col h-full">
+                {/* Image container (same as quizzes) */}
+                <div className="relative w-full h-48">
+                  <Image
+                    src={game.image || defaultImage}
+                    alt={game.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+
+                <div className="p-6 flex flex-col flex-grow">
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">{game.title}</h3>
+                  <p className="text-gray-600 text-sm flex-grow">{game.description}</p>
+                </div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Metaphors</h2>
-              <p className="text-gray-600">Test your knowledge of metaphors!</p>
-            </div>
-          </div>
+            </Link>
+          ))}
         </div>
       </main>
       <StudentFooter />
