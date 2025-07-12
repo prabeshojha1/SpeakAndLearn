@@ -17,8 +17,6 @@ export function QuizProvider({ children }) {
       setLoading(true);
       setError(null);
       
-      console.log('Fetching quizzes from database...');
-      
       // First, let's try a simple query without the questions join
       const { data, error } = await supabase
         .from('quizzes')
@@ -29,6 +27,8 @@ export function QuizProvider({ children }) {
           category,
           subject,
           difficulty,
+          banner_url,
+          time_per_question,
           is_active,
           created_at,
           question_time_duration
@@ -36,38 +36,69 @@ export function QuizProvider({ children }) {
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
-      console.log('Supabase query result:', { data, error });
-
       if (error) {
         console.error('Supabase error:', error);
         throw error;
       }
 
       if (!data || data.length === 0) {
-        console.log('No quizzes found in database');
         setQuizzes([]);
         return;
       }
 
       // Transform the data to match the expected format
-      const transformedQuizzes = data.map(quiz => ({
-        id: quiz.id,
-        title: quiz.title,
-        description: quiz.description || 'No description available',
-        category: quiz.category,
-        subject: quiz.subject,
-        difficulty: quiz.difficulty || 'medium',
-        coverImageUrl: '/placeholder.svg', // Default cover image
-        expectedTimeSec: 300, // Default time
-        questions: [ // Default questions for now since questions table is empty
-          { imageUrl: '/placeholder.svg', description: 'Question 1' },
-          { imageUrl: '/placeholder.svg', description: 'Question 2' },
-          { imageUrl: '/placeholder.svg', description: 'Question 3' },
-          { imageUrl: '/placeholder.svg', description: 'Question 4' }
-        ]
-      }));
+      const transformedQuizzes = [];
+      
+      for (const quiz of data) {
+        // Fetch questions for this quiz
+        let questions = [];
+        try {
+          const { data: questionData, error: questionError } = await supabase
+            .from('questions')
+            .select('id, image_url, question_text, correct_answer, order_index')
+            .eq('quiz_id', quiz.id)
+            .order('order_index', { ascending: true });
 
-      console.log('Transformed quizzes:', transformedQuizzes);
+          if (questionError) {
+            console.error('Error fetching questions for quiz', quiz.id, ':', questionError);
+          } else {
+            questions = questionData.map(question => ({
+              id: question.id,
+              quiz_id: quiz.id,
+              imageUrl: question.image_url,
+              description: question.question_text || '',
+              answer: question.correct_answer || '',
+              orderIndex: question.order_index
+            }));
+          }
+        } catch (err) {
+          console.error('Error loading questions for quiz', quiz.id, ':', err);
+        }
+
+        // If no questions found, use fallback
+        if (questions.length === 0) {
+          questions = [
+            { imageUrl: '/placeholder.svg', description: 'Question 1' },
+            { imageUrl: '/placeholder.svg', description: 'Question 2' },
+            { imageUrl: '/placeholder.svg', description: 'Question 3' },
+            { imageUrl: '/placeholder.svg', description: 'Question 4' }
+          ];
+        }
+
+        transformedQuizzes.push({
+          id: quiz.id,
+          title: quiz.title,
+          description: quiz.description || 'No description available',
+          category: quiz.category,
+          subject: quiz.subject,
+          difficulty: quiz.difficulty || 'medium',
+          coverImageUrl: quiz.banner_url || '/placeholder.svg', // Use banner_url if available
+          bannerUrl: quiz.banner_url, // Also keep separate bannerUrl field
+          expectedTimeSec: (quiz.time_per_question || 30) * questions.length, // Total time based on questions
+          timePerQuestion: quiz.time_per_question || 30, // Time per individual question
+          questions: questions
+        });
+      }
 
       setQuizzes(transformedQuizzes);
     } catch (err) {
@@ -157,13 +188,15 @@ export function QuizProvider({ children }) {
 
   const addQuiz = async (quiz) => {
     try {
-      const {title, subject, description, question_time_duration, questions} = quiz ;
+      const {title, subject, description, bannerUrl, questions, difficulty, timePerQuestion} = quiz ;
       const newQuiz = {
         title,
         category: subject,
         description,
-        is_active: true,
-        question_time_duration
+        banner_url: bannerUrl,
+        difficulty: difficulty?.toLowerCase() || 'medium',
+        time_per_question: timePerQuestion || 30,
+        is_active: true
       }
       const { data, error } = await supabase
         .from('quizzes')
@@ -172,12 +205,13 @@ export function QuizProvider({ children }) {
         .single();
       
       // Used data from created quiz to get the ID for the questions
-      for (const fileObj of questions) {
+      for (const [index, questionObj] of questions.entries()) {
         let questionInfo = {
           quiz_id: data.id,
-          image_url: fileObj.imageUrl,
-          correct_answer: fileObj.answer || '',
-          question_text: description || '',  
+          image_url: questionObj.imageUrl || null,
+          correct_answer: questionObj.answer || '',
+          question_text: questionObj.questionText || questionObj.description || '',  
+          order_index: index
         };
 
         let { _, error } = await supabase
@@ -201,7 +235,8 @@ export function QuizProvider({ children }) {
   };
   
   const getQuizById = (id) => {
-    return quizzes.find(quiz => quiz.id === parseInt(id));
+    const foundQuiz = quizzes.find(quiz => quiz.id === parseInt(id));
+    return foundQuiz;
   };
 
   const getQuizzesByDifficulty = (difficulty) => {
@@ -297,8 +332,9 @@ export function QuizProvider({ children }) {
     try {
       const { data, error } = await supabase
         .from('questions')
-        .select('id, image_url, question_text, correct_answer')
-        .eq('quiz_id', quizId);
+        .select('id, image_url, question_text, correct_answer, order_index')
+        .eq('quiz_id', quizId)
+        .order('order_index', { ascending: true });
 
       if (error) {
         console.error('Error fetching questions:', error);
@@ -310,7 +346,8 @@ export function QuizProvider({ children }) {
         quiz_id: quizId,
         imageUrl: question.image_url,
         description: question.question_text || '',
-        answer: question.correct_answer || ''
+        answer: question.correct_answer || '',
+        orderIndex: question.order_index
       }));
     } catch (err) {
       console.error('Error getting questions:', err);
