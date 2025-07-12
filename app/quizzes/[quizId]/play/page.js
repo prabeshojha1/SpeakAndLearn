@@ -59,16 +59,6 @@ export default function QuizPlayPage({ params }) {
     }));
     
     console.log(`Recording completed for question ${currentQuestionIndex + 1}:`, recordingData);
-    
-    // Track transcription state
-    if (recordingData.transcription) {
-      console.log(`Transcription for question ${currentQuestionIndex + 1}:`, recordingData.transcription);
-    }
-
-    // Track evaluation results
-    if (recordingData.evaluation) {
-      console.log(`Evaluation for question ${currentQuestionIndex + 1}:`, recordingData.evaluation);
-    }
   };
 
   const handleTranscriptionStateChange = (isTranscribingNow) => {
@@ -98,8 +88,6 @@ export default function QuizPlayPage({ params }) {
         return;
       }
 
-      console.log('Sending recordings to API:', recordings);
-      
       const response = await fetch('/api/game-sessions', {
         method: 'POST',
         headers: {
@@ -166,6 +154,7 @@ export default function QuizPlayPage({ params }) {
             {/* Voice Recorder Component */}
             <div className="mb-6">
                 <VoiceRecorder 
+                  key={currentQuestionIndex}
                   onRecordingComplete={handleRecordingComplete}
                   questionIndex={currentQuestionIndex}
                   questionText={currentQuestion.description}
@@ -173,22 +162,22 @@ export default function QuizPlayPage({ params }) {
                   isRecording={isRecording}
                   setIsRecording={setIsRecording}
                   onTranscriptionStateChange={handleTranscriptionStateChange}
+                  showFeedback={false}
                 />
             </div>
 
             <button 
               onClick={handleNext}
-              disabled={isRecording || isSubmitting || isTranscribing}
+              disabled={isRecording || isSubmitting}
               className={`w-full font-bold py-4 rounded-xl text-2xl transition-all transform hover:scale-105 ${
-                isRecording || isSubmitting || isTranscribing
+                isRecording || isSubmitting
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-pink-500 hover:bg-pink-600 text-white'
               }`}
             >
               {isSubmitting ? 'Saving...' : 
-               isTranscribing ? 'Processing...' : 
                isRecording ? 'Recording...' : 
-               isLastQuestion ? 'Finish' : 'Next Question'}
+               isLastQuestion ? 'Finish Quiz' : 'Next Question'}
             </button>
         </div>
     </div>

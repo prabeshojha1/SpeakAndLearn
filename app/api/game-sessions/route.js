@@ -12,10 +12,7 @@ function calculateEvaluationSummary(evaluations, totalQuestions) {
       average_score: 0,
       understanding_levels: {},
       performance_category: 'no_evaluation',
-      key_insights: [
-        'No evaluations completed',
-        'Please try recording your responses for better feedback'
-      ]
+      overall_feedback: 'No evaluations were completed. Please try recording your responses for better feedback.'
     };
   }
 
@@ -34,30 +31,10 @@ function calculateEvaluationSummary(evaluations, totalQuestions) {
   else if (averageScore >= 70) performanceCategory = 'good';
   else if (averageScore >= 60) performanceCategory = 'fair';
 
-  // Generate key insights
-  const keyInsights = [];
-  keyInsights.push(`Completed ${evaluations.length} out of ${totalQuestions} questions`);
-  keyInsights.push(`Average score: ${averageScore}%`);
-  
-  if (averageScore >= 90) {
-    keyInsights.push('Outstanding performance! You demonstrate exceptional understanding! 🌟');
-  } else if (averageScore >= 80) {
-    keyInsights.push('Excellent understanding demonstrated! 🎉');
-  } else if (averageScore >= 70) {
-    keyInsights.push('Good grasp of the concepts! 👍');
-  } else if (averageScore >= 60) {
-    keyInsights.push('Fair understanding shown. Keep practicing! 💪');
-  } else {
-    keyInsights.push('Consider reviewing the material for better understanding 📚');
-  }
-
-  // Add level-specific insights
-  if (levelCounts.excellent > 0) {
-    keyInsights.push(`${levelCounts.excellent} question${levelCounts.excellent > 1 ? 's' : ''} showed excellent understanding`);
-  }
-  if (levelCounts.needs_improvement > 0) {
-    keyInsights.push(`${levelCounts.needs_improvement} question${levelCounts.needs_improvement > 1 ? 's' : ''} need${levelCounts.needs_improvement === 1 ? 's' : ''} more practice`);
-  }
+  // Combine individual feedback strings into one paragraph
+  const combinedFeedback = evaluations
+    .map((e, idx) => `Q${idx + 1}: ${e.feedback}`)
+    .join(' ');
 
   return {
     overall_score: averageScore,
@@ -66,7 +43,7 @@ function calculateEvaluationSummary(evaluations, totalQuestions) {
     average_score: averageScore,
     understanding_levels: levelCounts,
     performance_category: performanceCategory,
-    key_insights: keyInsights
+    overall_feedback: combinedFeedback
   };
 }
 
@@ -134,14 +111,8 @@ export async function POST(request) {
       const recordingMetadata = {};
       const evaluations = [];
       
-      console.log('Processing recordings:', recordings);
-      
       for (const [questionIndex, recordingData] of Object.entries(recordings)) {
-        console.log(`Processing question ${questionIndex}:`, {
-          hasTranscription: !!recordingData.transcription,
-          hasEvaluation: !!recordingData.evaluation,
-          evaluation: recordingData.evaluation
-        });
+        
         processedRecordings[questionIndex] = {
           audio_data: recordingData.base64Audio,
           mime_type: recordingData.mimeType,
@@ -165,15 +136,11 @@ export async function POST(request) {
         }
       }
 
-      console.log('Collected evaluations:', evaluations);
-      
       // Calculate combined evaluation summary and store in evaluation_results
       const evaluationSummary = calculateEvaluationSummary(evaluations, Object.keys(recordings).length);
       
-      console.log('Evaluation summary:', evaluationSummary);
-      
       // Update the game session with audio recordings and evaluation summary
-      const updateData = {
+      const updatedSession = await db.updateGameSession(gameSession.id, {
         is_completed: true,
         completed_at: new Date().toISOString(),
         audio_recordings: processedRecordings,
@@ -181,11 +148,7 @@ export async function POST(request) {
         has_recordings: Object.keys(processedRecordings).length > 0,
         evaluation_results: evaluationSummary,
         has_evaluation: evaluations.length > 0
-      };
-      
-      console.log('Updating game session with:', updateData);
-      
-      const updatedSession = await db.updateGameSession(gameSession.id, updateData);
+      });
       
       console.log('Game session completed with recordings:', updatedSession);
       return NextResponse.json(updatedSession, { status: 200 });

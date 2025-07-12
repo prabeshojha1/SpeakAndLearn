@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 
-export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRecording, setIsRecording, questionText = '', quizTitle = '', onTranscriptionStateChange }) {
+export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRecording, setIsRecording, questionText = '', quizTitle = '', onTranscriptionStateChange, showFeedback = true }) {
   const [timeLeft, setTimeLeft] = useState(20); // 20 second recording
   const [audioURL, setAudioURL] = useState(null);
   const [isSupported, setIsSupported] = useState(true);
@@ -115,10 +115,11 @@ export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRe
                 });
                 
                 if (evaluationResponse.ok) {
-                  const evaluationResult = await evaluationResponse.json();
-                  evaluationResult.evaluation.feedback = evaluationResult.evaluation.feedback || 'Good effort!';
-                  setEvaluation(evaluationResult.evaluation);
-                  console.log('Evaluation completed:', evaluationResult.evaluation);
+                  const evaluationData = await evaluationResponse.json();
+                  evaluationData.evaluation.feedback = evaluationData.evaluation.feedback || 'Good effort!';
+                  evaluationResult = evaluationData.evaluation; // Update the outer variable
+                  setEvaluation(evaluationResult);
+                  console.log('Evaluation completed:', evaluationResult);
                 } else {
                   console.error('Evaluation failed:', await evaluationResponse.text());
                 }
@@ -248,7 +249,7 @@ export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRe
         </div>
       )}
       
-      {isTranscribing && (
+      {showFeedback && isTranscribing && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
           <div className="flex items-center gap-3 mb-2">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
@@ -260,7 +261,7 @@ export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRe
         </div>
       )}
 
-      {isEvaluating && (
+      {showFeedback && isEvaluating && (
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
           <div className="flex items-center gap-3 mb-2">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></div>
@@ -272,7 +273,9 @@ export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRe
         </div>
       )}
 
-      {audioURL && !isRecording && !isTranscribing && !isEvaluating && (
+      {/* Removed silent processing animation when showFeedback is false to avoid unnecessary UI flash */}
+
+      {audioURL && !isRecording && !isTranscribing && !isEvaluating && showFeedback && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
           <p className="text-green-600 font-semibold mb-2">Recording complete!</p>
           <audio controls src={audioURL} className="w-full mb-3">
@@ -306,6 +309,18 @@ export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRe
               <p className="text-gray-700 text-sm">{evaluation.feedback}</p>
             </div>
           )}
+        </div>
+      )}
+
+      {audioURL && !isRecording && !isTranscribing && !isEvaluating && !showFeedback && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-2xl">✓</span>
+            <p className="text-green-600 font-semibold">Response recorded successfully!</p>
+          </div>
+          <p className="text-sm text-green-500 text-center mt-1">
+            Ready for the next question
+          </p>
         </div>
       )}
       

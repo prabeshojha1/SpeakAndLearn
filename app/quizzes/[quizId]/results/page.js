@@ -19,6 +19,16 @@ export default function QuizResultsPage({ params }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // New: color mapping for performance categories
+  const performanceColors = {
+    outstanding: 'bg-green-100 text-green-700',
+    excellent: 'bg-green-100 text-green-700',
+    good: 'bg-blue-100 text-blue-700',
+    fair: 'bg-yellow-100 text-yellow-700',
+    needs_improvement: 'bg-red-100 text-red-700',
+    no_evaluation: 'bg-gray-100 text-gray-700',
+  };
+
   // Fetch quiz data and game session
   useEffect(() => {
     const fetchData = async () => {
@@ -197,6 +207,42 @@ export default function QuizResultsPage({ params }) {
               </p>
             )}
           </div>
+
+          {/* Overall AI Performance Summary */}
+          {gameSession?.has_evaluation && gameSession.evaluation_results && (
+            <div className="mb-10 p-6 rounded-xl border border-purple-200 bg-purple-50 shadow-sm">
+              <h3 className="text-xl font-semibold text-purple-800 mb-4">Overall AI Performance Summary</h3>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-5xl font-extrabold text-purple-600">
+                    {gameSession.evaluation_results.overall_score}<span className="text-3xl">%</span>
+                  </span>
+                  <div className="space-y-1">
+                    <p className="text-sm text-gray-700">Average Score</p>
+                    <p className="text-sm text-gray-500">
+                      {gameSession.evaluation_results.evaluated_questions} / {gameSession.evaluation_results.total_questions} questions evaluated
+                    </p>
+                  </div>
+                </div>
+
+                {/* Performance category chip */}
+                <span
+                  className={`self-start sm:self-auto text-xs px-3 py-1 rounded-full font-medium ${
+                    performanceColors[gameSession.evaluation_results.performance_category] || 'bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  {gameSession.evaluation_results.performance_category.replace(/_/g, ' ')}
+                </span>
+              </div>
+
+              {/* Combined feedback */}
+              {gameSession.evaluation_results.overall_feedback && (
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                  {gameSession.evaluation_results.overall_feedback}
+                </p>
+              )}
+            </div>
+          )}
           
           <div className="space-y-6 mb-8">
             <h3 className="text-xl font-semibold text-gray-800">Your Voice Recordings</h3>
@@ -205,8 +251,6 @@ export default function QuizResultsPage({ params }) {
               const audioData = gameSession?.audio_recordings?.[index];
               const audioURL = audioData ? createAudioURL(audioData.audio_data, audioData.mime_type) : null;
               const metadata = gameSession?.recording_metadata?.[index];
-              
-              console.log(`Question ${index + 1} metadata:`, metadata);
               
               return (
                 <div key={index} className="border border-gray-200 p-6 rounded-xl bg-gradient-to-r from-pink-50 to-purple-50 shadow-sm">
@@ -263,7 +307,7 @@ export default function QuizResultsPage({ params }) {
                           )}
 
                           {/* Evaluation Section */}
-                          {metadata?.evaluation && (
+                          {metadata?.evaluation ? (
                             <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-md">
                               <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-2">
@@ -289,7 +333,19 @@ export default function QuizResultsPage({ params }) {
                               </div>
                               <p className="text-gray-700 text-sm">{metadata.evaluation.feedback}</p>
                             </div>
-                          )}
+                          ) : metadata?.transcription ? (
+                            <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-yellow-700">⏳ AI Evaluation:</span>
+                                <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
+                                  Processing
+                                </span>
+                              </div>
+                              <p className="text-sm text-yellow-600 mt-1">
+                                Evaluation is being processed. Please refresh the page in a moment.
+                              </p>
+                            </div>
+                          ) : null}
                           
                           {metadata?.transcription_status === 'failed' && (
                             <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
