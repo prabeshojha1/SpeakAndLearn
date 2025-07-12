@@ -1,10 +1,13 @@
 "use client";
 
+import StudentFooter from '@/app/components/StudentFooter';
 import StudentHeader from '@/app/components/StudentHeader';
 
 export default function PlayerGamesPage() {
   return (
+    
     <div className="min-h-screen animated-gradient">
+      <StudentHeader />
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-extrabold text-gray-800 mb-2">Games</h1>
@@ -24,7 +27,7 @@ export default function PlayerGamesPage() {
           </div>
         </div>
       </main>
-      <StudentHeader />
+      
     </div>
   );
 }
