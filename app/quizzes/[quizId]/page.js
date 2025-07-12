@@ -73,8 +73,8 @@ export default function QuizDetailPage({ params }) {
   }
 
   return (
-    <div className="min-h-screen animated-gradient">
-      <main className="container mx-auto p-4 sm:p-6 lg:p-8 flex justify-center">
+    <div className="min-h-screen animated-gradient flex flex-col"> {/* Keep min-h-screen and gradient here, make it a column flex container */}
+      <main className="flex-grow flex items-center justify-center container mx-auto p-4 sm:p-6 lg:p-8"> {/* Main takes all available space and centers its content */}
         <div className="bg-white/80 p-8 rounded-2xl shadow-xl max-w-4xl w-full">
             <img src={quiz.coverImageUrl || '/placeholder.svg'} alt={quiz.title} className="w-full h-64 object-cover rounded-lg mb-6 bg-gray-200" />
             <h2 className="text-4xl font-extrabold text-gray-800 mb-4">{quiz.title}</h2>

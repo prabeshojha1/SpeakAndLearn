@@ -25,7 +25,7 @@ export default function AuthPage() {
           password,
         });
         if (error) throw error;
-        router.push('/');
+        router.push('/quizzes'); // Changed redirection to /quizzes
       } else {
         const { error } = await supabase.auth.signUp({
           email,
@@ -44,7 +44,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex flex-col items-center bg-gray-50 pt-20 px-4 sm:px-6 lg:px-8"> {/* Adjusted padding and alignment */}
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -116,4 +116,4 @@ export default function AuthPage() {
       </div>
     </div>
   );
-} 
+}

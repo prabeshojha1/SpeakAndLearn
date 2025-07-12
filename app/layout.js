@@ -2,7 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { QuizProvider } from "./context/QuizContext";
 import { SupabaseProvider } from "./context/SupabaseContext";
-import StudentHeader from "./components/StudentHeader";
+import MainLayout from "./components/MainLayout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,12 +27,7 @@ export default function RootLayout({ children }) {
       >
         <SupabaseProvider>
           <QuizProvider>
-            <div className="flex flex-col min-h-screen">
-              <StudentHeader />
-              <main className="flex-grow">
-                {children}
-              </main>
-            </div>
+            <MainLayout>{children}</MainLayout>
           </QuizProvider>
         </SupabaseProvider>
       </body>

@@ -1,42 +1,34 @@
 
+"use client";
 import Link from 'next/link';
-import LandingNavbar from '@/app/components/LandingNavbar';
-import { FaLightbulb, FaUsers, FaChartLine, FaQuoteLeft } from 'react-icons/fa';
+import { GiBrain, GiMicrophone, GiGamepad } from 'react-icons/gi';
+import { FaQuoteLeft } from 'react-icons/fa';
+import { useSupabase } from './context/SupabaseContext';
 
+const HeroSection = () => {
+  const { user } = useSupabase();
 
-const HeroSection = () => (
-
-  <section className="bg-white text-slate-800">
-    <div className="container mx-auto flex flex-col items-center px-4 pt-24 pb-32 text-center">
-      <h1>
-
-        <span className="text-blue-500 text-10xl md:text-7xl font-bold leading-tight">
-          SpeakAndLearn.ai
-        </span>
-      </h1>
-      <h1 className="text-3xl md:text-4xl font-bold leading-tight">
-        The Ultimate Platform for<br />Interactive Quizzes
-      </h1>
-      <p className="mt-6 text-lg text-slate-600 max-w-2xl">
-        Engage, learn, and compete. Create your own quizzes or take on challenges from others.
-      </p>
-      <div className="mt-10 flex flex-wrap justify-center gap-4">
-        
-        <Link href="/quizzes">
-          <button className="px-8 py-3 text-lg font-semibold rounded-lg bg-yellow-400 text-slate-800 shadow-lg transition-transform transform hover:scale-105">
-            Start as a Student
-          </button>
-        </Link>
-        
-        <Link href="/admin/quizzes">
-          <button className="px-8 py-3 text-lg font-semibold border-2 rounded-lg border-slate-300 text-slate-600 transition-all hover:bg-slate-100">
-            Go to Admin Panel
-          </button>
-        </Link>
+  return (
+    <section className="animated-gradient text-white">
+      <div className="container mx-auto flex flex-col items-center px-4 pt-32 pb-25 text-center">
+        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight">
+          <span className="block mb-2">SpeakAndLearn.ai</span>
+          <span className="block text-yellow-300">Where Learning Meets Speaking and Fun</span>
+        </h1>
+        <p className="mt-6 text-lg text-white/90 max-w-3xl">
+          A revolutionary tool that helps kids learn by speaking, featuring interactive quizzes, creative challenges, and real-time growth.
+        </p>
+        <div className="mt-12 flex flex-col sm:flex-row justify-center items-center gap-6">
+          <Link href={user ? "/quizzes" : "/auth"}>
+            <button className="px-10 py-4 text-xl font-bold rounded-full bg-white text-blue-600 shadow-2xl transform hover:scale-110 transition-all duration-300 ease-in-out">
+              Start Your Adventure
+            </button>
+          </Link>
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 const FeaturesSection = () => {
   return (
@@ -57,29 +49,29 @@ const FeaturesSection = () => {
           <div className="text-center p-8 rounded-2xl shadow-xl bg-white border border-slate-200">
    
             <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 bg-blue-100 rounded-full">
-              <FaLightbulb className="w-10 h-10 text-blue-500" aria-hidden="true" />
+              <GiBrain className="w-10 h-10 text-blue-500" aria-hidden="true" />
             </div>
-            <h3 className="text-2xl font-bold mb-3 text-slate-800">Create & Share</h3>
+            <h3 className="text-2xl font-bold mb-3 text-slate-800">Speak and Learn</h3>
             <p className="text-slate-600">
-              Easily build custom quizzes with various question types and share them with a unique link.
+              Your child builds confidence in speaking while learning real-world knowledge—turning practice into progress every time they talk.
             </p>
           </div>
           <div className="text-center p-8 rounded-2xl shadow-xl bg-white border border-slate-200">
             <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 bg-green-100 rounded-full">
-              <FaUsers className="w-10 h-10 text-green-500" aria-hidden="true" />
+              <GiMicrophone className="w-10 h-10 text-green-500" aria-hidden="true" />
             </div>
-            <h3 className="text-2xl font-bold mb-3 text-slate-800">Compete with Friends</h3>
+            <h3 className="text-2xl font-bold mb-3 text-slate-800">Confidence for the Quiet</h3>
             <p className="text-slate-600">
-              Challenge your friends in real-time and see who comes out on top with live leaderboards.
+              Whether they’re shy or unsure, our gentle speaking games help your child find their voice and feel good using it.
             </p>
           </div>
           <div className="text-center p-8 rounded-2xl shadow-xl bg-white border border-slate-200">
             <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 bg-yellow-100 rounded-full">
-              <FaChartLine className="w-10 h-10 text-yellow-500" aria-hidden="true" />
+              <GiGamepad className="w-10 h-10 text-yellow-500" aria-hidden="true" />
             </div>
-            <h3 className="text-2xl font-bold mb-3 text-slate-800">Track Your Progress</h3>
+            <h3 className="text-2xl font-bold mb-3 text-slate-800">Learning That Feels Fun</h3>
             <p className="text-slate-600">
-              Get detailed insights into your performance and track your learning journey over time.
+              No more boring drills. Our engaging prompts make learning feel like a game—so your child keeps coming back for more.
             </p>
           </div>
         </div>
@@ -90,32 +82,30 @@ const FeaturesSection = () => {
 
 const SocialProofSection = () => {
   return (
-    <section className="bg-white py-24">
+    <section className="bg-off-white py-24">
       <div className="container mx-auto px-4">
       
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
        
-          <figure className="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 relative">
+          <figure className="bg-off-white p-8 rounded-2xl shadow-lg border border-slate-100 relative">
             
             <FaQuoteLeft className="absolute top-6 left-6 w-8 h-8 text-slate-200" aria-hidden="true" />
             <blockquote className="relative z-10 italic text-slate-700 text-lg">
-              "This is the best quiz platform I've ever used. So intuitive and engaging for my students!"
+              "I wish I was a child so that I could play on this all day!"
             </blockquote>
            
             <figcaption className="mt-6 text-right">
-              <p className="font-bold text-slate-800">- Jane Doe</p>
-              <p className="text-sm text-slate-500">High School Teacher</p>
+              <p className="font-bold text-slate-800">- Prabesh Ojha</p>
             </figcaption>
           </figure>
          
           <figure className="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 relative">
             <FaQuoteLeft className="absolute top-6 left-6 w-8 h-8 text-slate-200" aria-hidden="true" />
             <blockquote className="relative z-10 italic text-slate-700 text-lg">
-              "Competing with my friends is so much fun. I'm actually motivated to study now."
+              "My brother really loves this! He's a shy one but it's great to hear him talk so much!"
             </blockquote>
             <figcaption className="mt-6 text-right">
-              <p className="font-bold text-slate-800">- John Smith</p>
-              <p className="text-sm text-slate-500">University Student</p>
+              <p className="font-bold text-slate-800">- Michael Feng</p>
             </figcaption>
           </figure>
         </div>
