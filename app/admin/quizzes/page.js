@@ -15,7 +15,7 @@ const subjectColors = {
 };
 
 export default function AdminQuizzesPage() {
-  const { quizzes, loading, error, refreshQuizzes } = useQuiz();
+  const { quizzes, loading, error, refreshQuizzes, deleteQuiz } = useQuiz();
 
   if (loading) {
     return (
@@ -122,7 +122,8 @@ export default function AdminQuizzesPage() {
                     </span>
                   )}
                 </Link>
-                <button className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 transition-colors">
+                <button  onClick={() => {deleteQuiz(quiz.id);}} 
+                  className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 transition-colors">
                   <FaTrash size={20} />
                 </button>
               </div>

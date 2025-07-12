@@ -214,6 +214,83 @@ export function QuizProvider({ children }) {
     fetchQuizzes();
   };
 
+  const deleteQuiz = async (id) => {
+  try {
+    // 1. Get all questions for the quiz
+    const { data: questions, error: fetchError } = await supabase
+      .from('questions')
+      .select('id, image_url')
+      .eq('quiz_id', id);
+
+    if (fetchError) {
+      console.error('Error fetching questions for deletion:', fetchError);
+      throw fetchError;
+    }
+
+    // 2. Extract storage paths from image URLs
+    console.log(`Questions to delete for quiz ${id}:`, questions);
+    const pathsToDelete = questions
+      .map((q) => {
+        try {
+          const url = new URL(q.image_url);
+          const prefix = '/storage/v1/object/public/questions/'
+          const pathStartIndex = url.pathname.indexOf(prefix);
+          const path = url.pathname.slice(pathStartIndex + prefix.length);
+          console.log(`Path to delete: ${path}`);
+          return path
+        } catch (err) {
+          console.warn('Invalid image URL:', q.image_url);
+          return null;
+        }
+      })
+      .filter(Boolean);
+
+    // 3. Delete the files from Supabase Storage
+
+    console.log('Paths:', pathsToDelete);
+    if (pathsToDelete.length > 0) {
+      const { error: storageError } = await supabase
+        .storage
+        .from('questions') 
+        .remove(pathsToDelete);
+
+      if (storageError) {
+        console.error('Error deleting images from storage:', storageError);
+
+      }
+    }
+
+    // 4. Delete questions related to quiz
+    const { error: questionsDeleteError } = await supabase
+      .from('questions')
+      .delete()
+      .eq('quiz_id', id);
+
+    if (questionsDeleteError) {
+      console.error('Error deleting questions:', questionsDeleteError);
+      throw questionsDeleteError;
+    }
+
+    // 5. Delete quiz itself
+    const { error: quizDeleteError } = await supabase
+      .from('quizzes')
+      .delete()
+      .eq('id', id);
+
+    if (quizDeleteError) {
+      console.error('Error deleting quiz:', quizDeleteError);
+      throw quizDeleteError;
+    }
+
+ 
+    await fetchQuizzes();
+    console.log(`Quiz ${id} and related questions/files deleted.`);
+    } catch (err) {
+      console.error('Error deleting quiz:', err); 
+      throw err;
+    }
+  }
+
   return (
     <QuizContext.Provider value={{ 
       quizzes, 
@@ -223,7 +300,8 @@ export function QuizProvider({ children }) {
       getQuizById, 
       getQuizzesByDifficulty, 
       getQuizzesByCategory,
-      refreshQuizzes 
+      refreshQuizzes,
+      deleteQuiz 
     }}>
       {children}
     </QuizContext.Provider>
