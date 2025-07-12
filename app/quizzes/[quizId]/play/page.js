@@ -1,14 +1,16 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuiz } from '@/app/context/QuizContext';
+import { useSupabase } from '@/app/context/SupabaseContext';
 
 export default function QuizPlayPage({ params }) {
-  const { quizId } = params;
+  const { quizId } = use(params);
   const router = useRouter();
   const { getQuizById } = useQuiz();
+  const { user } = useSupabase(); // Add this to get current user
   
   const [quiz, setQuiz] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);

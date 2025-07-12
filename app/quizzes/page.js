@@ -2,7 +2,6 @@
 "use client";
 
 import Link from 'next/link';
-import StudentHeader from '@/app/components/StudentHeader';
 import { useQuiz } from '@/app/context/QuizContext';
 import StudentFooter from '../components/StudentFooter';
 

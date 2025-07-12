@@ -139,7 +139,6 @@ const FooterSection = () => (
 export default function HomePage() {
   return (
     <div className="bg-slate-50"> 
-      <LandingNavbar />
       <main>
         <HeroSection />
         <FeaturesSection />
