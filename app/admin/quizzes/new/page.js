@@ -14,7 +14,7 @@ const subjects = ['Maths', 'Science', 'English', 'History', 'Geography'];
 
 export default function NewQuizPage() {
   const [quizFiles, setQuizFiles] = useState([]);
-  const { addQuiz } = useQuiz();
+  const { addQuiz, refreshQuizzes } = useQuiz();
   const router = useRouter();
 
   const handleFilesChange = (files) => {
@@ -65,6 +65,7 @@ export default function NewQuizPage() {
       };
 
       addQuiz(newQuiz);
+      refreshQuizzes();
       router.push('/admin/quizzes'); // To see the new quiz in the list
 
     } catch (err) {
