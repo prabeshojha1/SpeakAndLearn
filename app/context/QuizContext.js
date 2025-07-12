@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useSupabase } from './SupabaseContext';
-import { use } from 'react';
 
 const QuizContext = createContext();
 
@@ -167,9 +166,29 @@ export function QuizProvider({ children }) {
       const { data, error } = await supabase
         .from('quizzes')
         .insert([newQuiz])
+        .select()
+        .single();
+      
+      // Used data from created quiz to get the ID for the questions
+      for (const fileObj of questions) {
+        let questionInfo = {
+          quiz_id: data.id,
+          image_url: fileObj.imageUrl,
+          correct_answer: fileObj.answer || '',
+          question_text: description || '',  
+        };
+
+        let { _, error } = await supabase
+        .from('questions')
+        .insert([questionInfo])
         .select();
 
-      // Refresh the quizzes list
+        if (error) {
+          console.error('Error uploading question:', error);
+          throw error;
+        }
+      }
+
       await fetchQuizzes();
       console.log('Quiz added successfully:', data);
       return data;
