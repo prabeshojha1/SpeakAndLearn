@@ -35,7 +35,7 @@ export default function QuizDetailPage({ params }) {
         return;
       }
 
-      console.log('Quiz ID (UUID):', quizId);
+      console.log('Quiz ID (integer):', quizId, typeof quizId);
       console.log('User ID:', session.user.id);
 
       // Create game session using the database helper via API

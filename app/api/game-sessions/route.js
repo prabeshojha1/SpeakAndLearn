@@ -38,10 +38,10 @@ export async function POST(request) {
     }
 
     console.log('API Debug - User ID:', user.id);
-    console.log('API Debug - Quiz ID:', quizId);
+    console.log('API Debug - Quiz ID:', quizId, typeof quizId);
 
-    // Check if quiz exists using database helper
-    const quiz = await db.getQuiz(quizId)
+    // Verify that the quiz exists in the database
+    const quiz = await db.getQuiz(quizId);
     if (!quiz) {
       return NextResponse.json(
         { error: 'Quiz not found' },
@@ -57,8 +57,9 @@ export async function POST(request) {
     }
 
     // Create new game session using database helper
-    // Use original function signature since database.js changes were rejected
     const gameSession = await db.createGameSession(user.id, quizId)
+
+    console.log('Game session created:', gameSession)
     
     return NextResponse.json(gameSession, { status: 201 })
   } catch (error) {
