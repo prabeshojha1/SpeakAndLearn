@@ -65,14 +65,14 @@ export default function NewGamePage() {
             const filePath = `banners/${fileName}`;
 
             const { data: uploadData, error: uploadError } = await supabase.storage
-              .from('questions')
+              .from('game-questions')
               .upload(filePath, bannerFile.file);
 
             if (uploadError) {
               console.error('Banner upload failed:', uploadError.message);
             } else {
                 const { data: publicData } = supabase.storage
-                .from('questions')
+                .from('game-questions')
                 .getPublicUrl(filePath);
                 bannerImageUrl = publicData.publicUrl;
             }
@@ -88,7 +88,7 @@ export default function NewGamePage() {
                 const filePath = `games/${fileName}`;
 
                 const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('questions')
+                .from('game-questions')
                 .upload(filePath, item.file);
 
                 if (uploadError) {
@@ -97,7 +97,7 @@ export default function NewGamePage() {
                 }
 
                 const { data: publicData } = supabase.storage
-                .from('questions')
+                .from('game-questions')
                 .getPublicUrl(filePath);
 
                 return {

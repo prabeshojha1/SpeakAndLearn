@@ -158,7 +158,7 @@ export function GameProvider({ children }) {
   const addGame = async (game) => {
     try {
       const {title, subject, description, question_time_duration, questions} = game ;
-      const newQuiz = {
+      const newGame = {
         title,
         category: subject,
         description,
@@ -167,21 +167,21 @@ export function GameProvider({ children }) {
       }
       const { data, error } = await supabase
         .from('games')
-        .insert([newQuiz])
+        .insert([newGame])
         .select()
         .single();
       
       // Used data from created game to get the ID for the questions
       for (const fileObj of questions) {
         let questionInfo = {
-          quiz_id: data.id,
+          game_id: data.id,
           image_url: fileObj.imageUrl,
           correct_answer: fileObj.answer || '',
           question_text: description || '',  
         };
 
         let { _, error } = await supabase
-        .from('questions')
+        .from('game_questions')
         .insert([questionInfo])
         .select();
 
@@ -192,7 +192,7 @@ export function GameProvider({ children }) {
       }
 
       await fetchGames();
-      console.log('Quiz added successfully:', data);
+      console.log('Game added successfully:', data);
       return data;
     } catch (err) {
       console.error('Error adding game:', err);
@@ -220,9 +220,9 @@ export function GameProvider({ children }) {
   try {
     // 1. Get all questions for the game
     const { data: questions, error: fetchError } = await supabase
-      .from('questions')
+      .from('game_questions')
       .select('id, image_url')
-      .eq('quiz_id', id);
+      .eq('game_id', id);
 
     if (fetchError) {
       console.error('Error fetching questions for deletion:', fetchError);
@@ -235,7 +235,7 @@ export function GameProvider({ children }) {
       .map((q) => {
         try {
           const url = new URL(q.image_url);
-          const prefix = '/storage/v1/object/public/questions/'
+          const prefix = '/storage/v1/object/public/game-questions/'
           const pathStartIndex = url.pathname.indexOf(prefix);
           const path = url.pathname.slice(pathStartIndex + prefix.length);
           console.log(`Path to delete: ${path}`);
@@ -253,7 +253,7 @@ export function GameProvider({ children }) {
     if (pathsToDelete.length > 0) {
       const { error: storageError } = await supabase
         .storage
-        .from('questions') 
+        .from('game-questions')
         .remove(pathsToDelete);
 
       if (storageError) {
@@ -264,9 +264,9 @@ export function GameProvider({ children }) {
 
     // 4. Delete questions related to game
     const { error: questionsDeleteError } = await supabase
-      .from('questions')
+      .from('game_questions')
       .delete()
-      .eq('quiz_id', id);
+      .eq('game_id', id);
 
     if (questionsDeleteError) {
       console.error('Error deleting questions:', questionsDeleteError);
@@ -286,7 +286,7 @@ export function GameProvider({ children }) {
 
  
     await fetchGames();
-    console.log(`Quiz ${id} and related questions/files deleted.`);
+    console.log(`Game ${id} and related questions/files deleted.`);
     } catch (err) {
       console.error('Error deleting game:', err); 
       throw err;
@@ -296,9 +296,9 @@ export function GameProvider({ children }) {
   const getQuestionsByGameId = async (gameId) => {
     try {
       const { data, error } = await supabase
-        .from('questions')
+        .from('game_questions')
         .select('id, image_url, question_text, correct_answer')
-        .eq('quiz_id', gameId);
+        .eq('game_id', gameId);
 
       if (error) {
         console.error('Error fetching questions:', error);
@@ -307,7 +307,7 @@ export function GameProvider({ children }) {
 
       return data.map(question => ({
         id: question.id,
-        quiz_id: gameId,
+        game_id: gameId,
         imageUrl: question.image_url,
         description: question.question_text || '',
         answer: question.correct_answer || ''
