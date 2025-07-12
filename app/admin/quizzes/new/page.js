@@ -53,18 +53,18 @@ export default function NewQuizPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                 <div>
                     <label htmlFor="title" className="block text-gray-700 font-bold mb-2">Quiz Title</label>
-                    <input type="text" id="title" name="title" className="w-full px-3 py-2 border rounded-lg" placeholder="e.g., The Romans" required/>
+                    <input type="text" id="title" name="title" className="w-full px-3 py-2 border rounded-lg text-gray-700" placeholder="e.g., The Romans" required/>
                 </div>
                 <div>
                     <label htmlFor="subject" className="block text-gray-700 font-bold mb-2">Subject</label>
-                    <select id="subject" name="subject" className="w-full px-3 py-2 border rounded-lg">
+                    <select id="subject" name="subject" className="w-full px-3 py-2 border rounded-lg text-gray-700">
                         {subjects.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                 </div>
             </div>
              <div className="mb-4">
               <label htmlFor="description" className="block text-gray-700 font-bold mb-2">Quiz Description</label>
-              <textarea id="description" name="description" rows="3" className="w-full px-3 py-2 border rounded-lg" placeholder="A brief overview for the student..."></textarea>
+              <textarea id="description" name="description" rows="3" className="w-full px-3 py-2 border rounded-lg text-gray-700" placeholder="A brief overview for the student..."></textarea>
             </div>
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">Quiz Questions (Images & Answers)</label>

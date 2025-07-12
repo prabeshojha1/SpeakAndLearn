@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useSupabase } from './SupabaseContext';
+import { use } from 'react';
 
 const QuizContext = createContext();
 
@@ -156,18 +157,21 @@ export function QuizProvider({ children }) {
 
   const addQuiz = async (quiz) => {
     try {
+      const {title, subject, description, questions} = quiz ;
+      const newQuiz = {
+        title,
+        category: subject,
+        description,
+        is_active: true
+      }
       const { data, error } = await supabase
         .from('quizzes')
-        .insert([quiz])
-        .select()
-        .single();
-
-      if (error) {
-        throw error;
-      }
+        .insert([newQuiz])
+        .select();
 
       // Refresh the quizzes list
       await fetchQuizzes();
+      console.log('Quiz added successfully:', data);
       return data;
     } catch (err) {
       console.error('Error adding quiz:', err);

@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import { useQuiz } from '@/app/context/QuizContext';
 import { useEffect, useState } from 'react';
+import { use } from 'react';
 
 const subjectTextColors = {
   Science: 'text-green-600',
@@ -15,15 +16,16 @@ const subjectTextColors = {
 };
 
 export default function ViewQuizPage({ params }) {
+  const { quizId } = use(params)
   const { getQuizById } = useQuiz();
   const [quiz, setQuiz] = useState(null);
 
   useEffect(() => {
-    if (params.quizId) {
-        const foundQuiz = getQuizById(params.quizId);
+    if (quizId) {
+        const foundQuiz = getQuizById(quizId);
         setQuiz(foundQuiz);
     }
-  }, [params.quizId, getQuizById]);
+  }, [quizId, getQuizById]);
 
   if (!quiz) {
     return (
