@@ -17,8 +17,6 @@ export function QuizProvider({ children }) {
       setLoading(true);
       setError(null);
       
-      console.log('Fetching quizzes from database...');
-      
       // First, let's try a simple query without the questions join
       const { data, error } = await supabase
         .from('quizzes')
@@ -29,13 +27,13 @@ export function QuizProvider({ children }) {
           category,
           subject,
           difficulty,
+          banner_url,
+          time_per_question,
           is_active,
           created_at
         `)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
-
-      console.log('Supabase query result:', { data, error });
 
       if (error) {
         console.error('Supabase error:', error);
@@ -43,30 +41,63 @@ export function QuizProvider({ children }) {
       }
 
       if (!data || data.length === 0) {
-        console.log('No quizzes found in database');
         setQuizzes([]);
         return;
       }
 
       // Transform the data to match the expected format
-      const transformedQuizzes = data.map(quiz => ({
-        id: quiz.id,
-        title: quiz.title,
-        description: quiz.description || 'No description available',
-        category: quiz.category,
-        subject: quiz.subject,
-        difficulty: quiz.difficulty || 'medium',
-        coverImageUrl: '/placeholder.svg', // Default cover image
-        expectedTimeSec: 300, // Default time
-        questions: [ // Default questions for now since questions table is empty
-          { imageUrl: '/placeholder.svg', description: 'Question 1' },
-          { imageUrl: '/placeholder.svg', description: 'Question 2' },
-          { imageUrl: '/placeholder.svg', description: 'Question 3' },
-          { imageUrl: '/placeholder.svg', description: 'Question 4' }
-        ]
-      }));
+      const transformedQuizzes = [];
+      
+      for (const quiz of data) {
+        // Fetch questions for this quiz
+        let questions = [];
+        try {
+          const { data: questionData, error: questionError } = await supabase
+            .from('questions')
+            .select('id, image_url, question_text, correct_answer, order_index')
+            .eq('quiz_id', quiz.id)
+            .order('order_index', { ascending: true });
 
-      console.log('Transformed quizzes:', transformedQuizzes);
+          if (questionError) {
+            console.error('Error fetching questions for quiz', quiz.id, ':', questionError);
+          } else {
+            questions = questionData.map(question => ({
+              id: question.id,
+              quiz_id: quiz.id,
+              imageUrl: question.image_url,
+              description: question.question_text || '',
+              answer: question.correct_answer || '',
+              orderIndex: question.order_index
+            }));
+          }
+        } catch (err) {
+          console.error('Error loading questions for quiz', quiz.id, ':', err);
+        }
+
+        // If no questions found, use fallback
+        if (questions.length === 0) {
+          questions = [
+            { imageUrl: '/placeholder.svg', description: 'Question 1' },
+            { imageUrl: '/placeholder.svg', description: 'Question 2' },
+            { imageUrl: '/placeholder.svg', description: 'Question 3' },
+            { imageUrl: '/placeholder.svg', description: 'Question 4' }
+          ];
+        }
+
+        transformedQuizzes.push({
+          id: quiz.id,
+          title: quiz.title,
+          description: quiz.description || 'No description available',
+          category: quiz.category,
+          subject: quiz.subject,
+          difficulty: quiz.difficulty || 'medium',
+          coverImageUrl: quiz.banner_url || '/placeholder.svg', // Use banner_url if available
+          bannerUrl: quiz.banner_url, // Also keep separate bannerUrl field
+          expectedTimeSec: (quiz.time_per_question || 30) * questions.length, // Total time based on questions
+          timePerQuestion: quiz.time_per_question || 30, // Time per individual question
+          questions: questions
+        });
+      }
 
       setQuizzes(transformedQuizzes);
     } catch (err) {
@@ -156,18 +187,45 @@ export function QuizProvider({ children }) {
 
   const addQuiz = async (quiz) => {
     try {
+      const {title, subject, description, bannerUrl, questions, difficulty, timePerQuestion} = quiz ;
+      const newQuiz = {
+        title,
+        category: subject,
+        description,
+        banner_url: bannerUrl,
+        difficulty: difficulty?.toLowerCase() || 'medium',
+        time_per_question: timePerQuestion || 30,
+        is_active: true
+      }
       const { data, error } = await supabase
         .from('quizzes')
-        .insert([quiz])
+        .insert([newQuiz])
         .select()
         .single();
+      
+      // Used data from created quiz to get the ID for the questions
+      for (const [index, questionObj] of questions.entries()) {
+        let questionInfo = {
+          quiz_id: data.id,
+          image_url: questionObj.imageUrl || null,
+          correct_answer: questionObj.answer || '',
+          question_text: questionObj.questionText || questionObj.description || '',  
+          order_index: index
+        };
 
-      if (error) {
-        throw error;
+        let { _, error } = await supabase
+        .from('questions')
+        .insert([questionInfo])
+        .select();
+
+        if (error) {
+          console.error('Error uploading question:', error);
+          throw error;
+        }
       }
 
-      // Refresh the quizzes list
       await fetchQuizzes();
+      console.log('Quiz added successfully:', data);
       return data;
     } catch (err) {
       console.error('Error adding quiz:', err);
@@ -176,7 +234,8 @@ export function QuizProvider({ children }) {
   };
   
   const getQuizById = (id) => {
-    return quizzes.find(quiz => quiz.id === parseInt(id));
+    const foundQuiz = quizzes.find(quiz => quiz.id === parseInt(id));
+    return foundQuiz;
   };
 
   const getQuizzesByDifficulty = (difficulty) => {
@@ -191,6 +250,110 @@ export function QuizProvider({ children }) {
     fetchQuizzes();
   };
 
+  const deleteQuiz = async (id) => {
+  try {
+    // 1. Get all questions for the quiz
+    const { data: questions, error: fetchError } = await supabase
+      .from('questions')
+      .select('id, image_url')
+      .eq('quiz_id', id);
+
+    if (fetchError) {
+      console.error('Error fetching questions for deletion:', fetchError);
+      throw fetchError;
+    }
+
+    // 2. Extract storage paths from image URLs
+    console.log(`Questions to delete for quiz ${id}:`, questions);
+    const pathsToDelete = questions
+      .map((q) => {
+        try {
+          const url = new URL(q.image_url);
+          const prefix = '/storage/v1/object/public/questions/'
+          const pathStartIndex = url.pathname.indexOf(prefix);
+          const path = url.pathname.slice(pathStartIndex + prefix.length);
+          console.log(`Path to delete: ${path}`);
+          return path
+        } catch (err) {
+          console.warn('Invalid image URL:', q.image_url);
+          return null;
+        }
+      })
+      .filter(Boolean);
+
+    // 3. Delete the files from Supabase Storage
+
+    console.log('Paths:', pathsToDelete);
+    if (pathsToDelete.length > 0) {
+      const { error: storageError } = await supabase
+        .storage
+        .from('questions') 
+        .remove(pathsToDelete);
+
+      if (storageError) {
+        console.error('Error deleting images from storage:', storageError);
+
+      }
+    }
+
+    // 4. Delete questions related to quiz
+    const { error: questionsDeleteError } = await supabase
+      .from('questions')
+      .delete()
+      .eq('quiz_id', id);
+
+    if (questionsDeleteError) {
+      console.error('Error deleting questions:', questionsDeleteError);
+      throw questionsDeleteError;
+    }
+
+    // 5. Delete quiz itself
+    const { error: quizDeleteError } = await supabase
+      .from('quizzes')
+      .delete()
+      .eq('id', id);
+
+    if (quizDeleteError) {
+      console.error('Error deleting quiz:', quizDeleteError);
+      throw quizDeleteError;
+    }
+
+ 
+    await fetchQuizzes();
+    console.log(`Quiz ${id} and related questions/files deleted.`);
+    } catch (err) {
+      console.error('Error deleting quiz:', err); 
+      throw err;
+    }
+  }
+
+  const getQuestionsByQuizId = async (quizId) => {
+    try {
+      const { data, error } = await supabase
+        .from('questions')
+        .select('id, image_url, question_text, correct_answer, order_index')
+        .eq('quiz_id', quizId)
+        .order('order_index', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching questions:', error);
+        throw error;
+      }
+
+      return data.map(question => ({
+        id: question.id,
+        quiz_id: quizId,
+        imageUrl: question.image_url,
+        description: question.question_text || '',
+        answer: question.correct_answer || '',
+        orderIndex: question.order_index
+      }));
+    } catch (err) {
+      console.error('Error getting questions:', err);
+      throw err;
+    }
+  }
+
   return (
     <QuizContext.Provider value={{ 
       quizzes, 
@@ -200,7 +363,9 @@ export function QuizProvider({ children }) {
       getQuizById, 
       getQuizzesByDifficulty, 
       getQuizzesByCategory,
-      refreshQuizzes 
+      refreshQuizzes,
+      deleteQuiz,
+      getQuestionsByQuizId
     }}>
       {children}
     </QuizContext.Provider>

@@ -49,7 +49,7 @@ export default function ImageDropzone({ onFilesChange }) {
 
   return (
     <div>
-        <div {...getRootProps()} className={`w-full p-4 border-2 border-dashed rounded-lg text-center cursor-pointer
+        <div {...getRootProps()} className={`w-full p-4 border-2 border-dashed rounded-lg text-center cursor-pointer text-gray-400
             ${isDragActive ? 'border-pink-500 bg-pink-50' : 'border-gray-300'}`}>
             <input {...getInputProps()} />
             <p>Drag 'n' drop images here, or click to select</p>
@@ -62,7 +62,7 @@ export default function ImageDropzone({ onFilesChange }) {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Image Description (Correct Answer)</label>
                     <textarea 
                         rows="3"
-                        className="w-full px-3 py-2 border rounded-lg text-sm" 
+                        className="w-full px-3 py-2 border rounded-lg text-sm text-gray-500" 
                         placeholder="e.g., The seed sprouts from the ground."
                         value={item.description}
                         onChange={(e) => handleDescriptionChange(index, e.target.value)}

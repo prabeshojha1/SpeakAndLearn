@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useQuiz } from '@/app/context/QuizContext';
 import StudentFooter from '../components/StudentFooter';
 
-// CURRENTLY HARDCODED
+// Fallback images for quizzes without uploaded banners
 const quizImages = {
   "Solar System": "/pictures/nasagetsnewc.jpg",
   "World Capitals": "/pictures/Botany20Bay.jpg",
@@ -13,7 +13,7 @@ const quizImages = {
   "Chemistry Basics": "/pictures/recycled-robots1.png",
 };
 
-const defaultImage = "/pictures/SA-pumpkins.jpg";
+const defaultImage = "/image.webp"; // Changed from pumpkin to placeholder
 
 const subjectColors = {
   Maths: 'text-blue-600',
@@ -22,6 +22,15 @@ const subjectColors = {
   History: 'text-red-600',
   Geography: 'text-purple-600',
   Default: 'text-gray-600',
+};
+
+const subjectTagColors = {
+  Maths: 'bg-blue-100 text-blue-800',
+  Science: 'bg-green-100 text-green-800',
+  English: 'bg-yellow-100 text-yellow-800',
+  History: 'bg-red-100 text-red-800',
+  Geography: 'bg-purple-100 text-purple-800',
+  Default: 'bg-gray-100 text-gray-800',
 };
 
 export default function PlayerQuizzesPage() {
@@ -73,8 +82,8 @@ export default function PlayerQuizzesPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {quizzes.map((quiz) => {
-              const imageSrc = quizImages[quiz.title] || defaultImage;
-              const colorClass = subjectColors[quiz.subject] || subjectColors.Default;
+              const imageSrc = quiz.bannerUrl || defaultImage;
+              const colorClass = subjectColors[quiz.category] || subjectColors.Default;
 
               return (
                 <Link href={`/quizzes/${quiz.id}`} key={quiz.id}>
@@ -95,8 +104,17 @@ export default function PlayerQuizzesPage() {
                       <h3 className="text-xl font-bold text-gray-800 mb-2">{quiz.title}</h3>
                       <p className="text-gray-600 text-sm flex-grow">{quiz.description}</p>
 
-                      {quiz.difficulty && (
-                        <div className="mt-4">
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {quiz.category && (
+                          <span
+                            className={`inline-block px-3 py-1 text-xs font-bold uppercase rounded-full ${
+                              subjectTagColors[quiz.category] || subjectTagColors.Default
+                            }`}
+                          >
+                            {quiz.category}
+                          </span>
+                        )}
+                        {quiz.difficulty && (
                           <span
                             className={`inline-block px-3 py-1 text-xs font-bold uppercase rounded-full ${
                               quiz.difficulty === 'easy'
@@ -108,8 +126,8 @@ export default function PlayerQuizzesPage() {
                           >
                             {quiz.difficulty}
                           </span>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
                 </Link>

@@ -58,7 +58,6 @@ export default function QuizPlayPage({ params }) {
       [currentQuestionIndex]: recordingData
     }));
     
-    console.log(`Recording completed for question ${currentQuestionIndex + 1}:`, recordingData);
   };
 
   const handleTranscriptionStateChange = (isTranscribingNow) => {
@@ -126,29 +125,40 @@ export default function QuizPlayPage({ params }) {
   const isLastQuestion = currentQuestionIndex === quiz.questions.length - 1;
 
   return (
-    <div className="min-h-screen animated-gradient flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-3xl text-center bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 relative">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-3xl text-center bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 relative border border-blue-200">
             
             {/* Progress Bar */}
             <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-                <div className="bg-pink-500 h-2.5 rounded-full" style={{ width: `${((currentQuestionIndex + 1) / quiz.questions.length) * 100}%` }}></div>
+                <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: `${((currentQuestionIndex + 1) / quiz.questions.length) * 100}%` }}></div>
             </div>
 
-            {/* Countdown or Recording Indicator */}
-            {showCountdown ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-2xl z-20">
-                    <div className="text-9xl font-extrabold text-white animate-ping">{countdown}</div>
-                </div>
-            ) : isRecording && (
-                <div className="absolute top-4 right-4 flex items-center gap-2 text-red-500">
-                    <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
-                    <span>Recording...</span>
+            {/* Countdown */}
+            {showCountdown && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-2xl z-20">
+                    <div className="text-8xl font-bold text-white drop-shadow-lg">{countdown}</div>
                 </div>
             )}
             
-            <p className="text-xl text-gray-700 mb-4">{currentQuestion.description}</p>
+            {/* Question Content */}
             <div className="mb-6">
-                <img src={currentQuestion.imageUrl} alt="Quiz visual" className="w-full h-auto max-h-[50vh] object-contain rounded-lg bg-gray-100 shadow-md" />
+              {currentQuestion.imageUrl ? (
+                <>
+                  <p className="text-xl text-gray-700 mb-4">{currentQuestion.description}</p>
+                  <div className="mb-6">
+                    <img 
+                      src={currentQuestion.imageUrl} 
+                      alt="Quiz visual" 
+                      className="w-full h-auto max-h-[50vh] object-contain rounded-lg bg-blue-50 shadow-md border border-blue-200"
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="text-center p-8 bg-blue-50 rounded-lg border border-blue-200">
+                  <h2 className="text-3xl font-bold text-gray-800 mb-4">Question {currentQuestionIndex + 1}</h2>
+                  <p className="text-xl text-gray-700 leading-relaxed">{currentQuestion.description}</p>
+                </div>
+              )}
             </div>
 
             {/* Voice Recorder Component */}
@@ -171,8 +181,8 @@ export default function QuizPlayPage({ params }) {
               disabled={isRecording || isSubmitting}
               className={`w-full font-bold py-4 rounded-xl text-2xl transition-all transform hover:scale-105 ${
                 isRecording || isSubmitting
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-pink-500 hover:bg-pink-600 text-white'
+                  ? 'bg-gray-400 cursor-not-allowed text-gray-600'
+                  : 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg'
               }`}
             >
               {isSubmitting ? 'Saving...' : 

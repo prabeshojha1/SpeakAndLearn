@@ -140,9 +140,9 @@ export default function QuizResultsPage({ params }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pink-50 flex items-center justify-center">
+      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-pink-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-xl text-gray-600">Loading your results...</p>
         </div>
       </div>
@@ -151,14 +151,14 @@ export default function QuizResultsPage({ params }) {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-pink-50 flex items-center justify-center">
+      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             <p className="font-bold">Error</p>
             <p>{error}</p>
           </div>
           <Link href="/quizzes">
-            <button className="bg-pink-500 text-white font-bold py-2 px-4 rounded">
+            <button className="bg-blue-500 text-white font-bold py-2 px-4 rounded">
               Back to Quizzes
             </button>
           </Link>
@@ -169,11 +169,11 @@ export default function QuizResultsPage({ params }) {
 
   if (!quiz) {
     return (
-      <div className="min-h-screen bg-pink-50 flex items-center justify-center">
+      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-xl text-gray-600 mb-4">Quiz not found</p>
           <Link href="/quizzes">
-            <button className="bg-pink-500 text-white font-bold py-2 px-4 rounded">
+            <button className="bg-blue-500 text-white font-bold py-2 px-4 rounded">
               Back to Quizzes
             </button>
           </Link>
@@ -183,29 +183,40 @@ export default function QuizResultsPage({ params }) {
   }
 
   return (
-    <div className="min-h-screen bg-pink-50">
-      <header className="bg-pink-500 text-white p-4 text-center">
+    <div className="min-h-screen bg-blue-50">
+      <header className="bg-blue-500 text-white p-4 text-center">
         <h1 className="text-3xl font-bold">Quiz Results</h1>
       </header>
       <main className="p-8">
         <div className="bg-white p-8 rounded-lg shadow-md max-w-4xl mx-auto">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-pink-800">{quiz.title}</h2>
-            <div className="flex items-center justify-center gap-2 my-4">
-              <span className="text-4xl font-extrabold text-green-500">✓</span>
-              <span className="text-2xl font-bold text-green-500">Quiz Completed!</span>
+          <div className="flex items-center gap-6 mb-6">
+            {/* Placeholder image box */}
+            <div className="flex-shrink-0">
+              <div className="w-24 h-24 rounded-xl flex items-center justify-center">
+                <div className="text-3xl">
+                  <img src={quiz.bannerUrl} alt="Quiz Results" className="w-24 h-24" />
+                </div>
+              </div>
             </div>
-            <p className="text-lg text-gray-700">
-              {gameSession ? 
-                `Completed on ${new Date(gameSession.completed_at).toLocaleDateString()}` :
-                'Your quiz responses have been recorded successfully!'
-              }
-            </p>
-            {gameSession?.has_recordings && (
-              <p className="text-sm text-blue-600 mt-2">
-                🎙️ {Object.keys(gameSession.audio_recordings || {}).length} voice recordings saved
+            
+            {/* Quiz title and completion text */}
+            <div className="flex-grow">
+              <h2 className="text-2xl font-bold text-blue-800 mb-2">{quiz.title}</h2>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl font-bold text-green-600">Quiz Completed!</span>
+              </div>
+              <p className="text-sm text-gray-600">
+                {gameSession ? 
+                  `Completed on ${new Date(gameSession.completed_at).toLocaleDateString()}` :
+                  'Your quiz responses have been recorded successfully!'
+                }
               </p>
-            )}
+              {gameSession?.has_recordings && (
+                <p className="text-sm text-blue-600 mt-1">
+                  {Object.keys(gameSession.audio_recordings || {}).length} voice recordings saved
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Overall AI Performance Summary */}
@@ -253,15 +264,17 @@ export default function QuizResultsPage({ params }) {
               const metadata = gameSession?.recording_metadata?.[index];
               
               return (
-                <div key={index} className="border border-gray-200 p-6 rounded-xl bg-gradient-to-r from-pink-50 to-purple-50 shadow-sm">
+                <div key={index} className="border border-gray-200 p-6 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm">
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="flex-shrink-0">
-                      <img 
-                        src={question.imageUrl} 
-                        alt={`Question ${index + 1}`} 
-                        className="w-20 h-20 object-cover rounded-lg border-2 border-pink-200"
-                      />
-                    </div>
+                    {question.imageUrl && (
+                      <div className="flex-shrink-0">
+                        <img 
+                          src={question.imageUrl} 
+                          alt={`Question ${index + 1}`} 
+                          className="w-20 h-20 object-cover rounded-lg border-2 border-blue-200"
+                        />
+                      </div>
+                    )}
                     <div className="flex-grow">
                       <h4 className="font-semibold text-lg text-gray-800 mb-2">
                         Question {index + 1}
@@ -269,10 +282,10 @@ export default function QuizResultsPage({ params }) {
                       <p className="text-gray-600 mb-3">{question.description}</p>
                       
                       {audioURL ? (
-                        <div className="bg-white p-4 rounded-lg border border-pink-200">
+                        <div className="bg-white p-4 rounded-lg border border-blue-200">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-medium text-green-600">
-                              ✓ Recording Available
+                              Recording Available
                             </span>
                             {metadata?.duration && (
                               <span className="text-xs text-gray-500">
@@ -293,12 +306,12 @@ export default function QuizResultsPage({ params }) {
                           {metadata?.transcription && (
                             <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
                               <div className="flex items-center gap-2 mb-2">
-                                <span className="text-sm font-medium text-blue-700">🎙️ Transcription:</span>
-                                {metadata.transcription_status === 'completed' && (
+                                <span className="text-sm font-medium text-blue-700">Transcription:</span>
+                                {/* {metadata.transcription_status === 'completed' && (
                                   <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
                                     AI Processed
                                   </span>
-                                )}
+                                )} */}
                               </div>
                               <p className="text-gray-700 text-sm italic leading-relaxed">
                                 "{metadata.transcription}"
@@ -311,12 +324,12 @@ export default function QuizResultsPage({ params }) {
                             <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-md">
                               <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium text-purple-700">🎯 AI Evaluation:</span>
-                                  {metadata.has_evaluation && (
+                                  <span className="text-sm font-medium text-purple-700">AI Evaluation:</span>
+                                  {/* {metadata.has_evaluation && (
                                     <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                                      Analyzed
+                                      Analysed
                                     </span>
-                                  )}
+                                  )} */}
                                 </div>
                                 <span className={`text-xs px-2 py-1 rounded-full font-medium ${
                                   metadata.evaluation.understanding_level === 'excellent' ? 'bg-green-100 text-green-700' :
@@ -336,7 +349,7 @@ export default function QuizResultsPage({ params }) {
                           ) : metadata?.transcription ? (
                             <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                               <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-yellow-700">⏳ AI Evaluation:</span>
+                                <span className="text-sm font-medium text-yellow-700">AI Evaluation:</span>
                                 <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
                                   Processing
                                 </span>
@@ -350,7 +363,7 @@ export default function QuizResultsPage({ params }) {
                           {metadata?.transcription_status === 'failed' && (
                             <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                               <p className="text-sm text-yellow-700">
-                                ⚠️ Transcription could not be completed for this recording
+                                Transcription could not be completed for this recording
                               </p>
                             </div>
                           )}
@@ -364,7 +377,6 @@ export default function QuizResultsPage({ params }) {
                       ) : (
                         <div className="bg-gray-100 p-4 rounded-lg border border-gray-200">
                           <div className="flex items-center gap-2 text-gray-500">
-                            <span className="text-sm">🎙️</span>
                             <span className="text-sm">No recording available for this question</span>
                           </div>
                         </div>
@@ -391,12 +403,12 @@ export default function QuizResultsPage({ params }) {
           <div className="text-center space-y-4">
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href={`/quizzes/${quizId}`}>
-                <button className="bg-purple-500 text-white font-bold py-3 px-6 rounded-lg text-lg hover:bg-purple-600 transition-colors">
+                <button className="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg hover:bg-blue-700 transition-colors">
                   Take Quiz Again
                 </button>
               </Link>
               <Link href="/quizzes">
-                <button className="bg-pink-500 text-white font-bold py-3 px-6 rounded-lg text-lg hover:bg-pink-600 transition-colors">
+                <button className="bg-blue-500 text-white font-bold py-3 px-6 rounded-lg text-lg hover:bg-blue-600 transition-colors">
                   Explore Other Quizzes
                 </button>
               </Link>

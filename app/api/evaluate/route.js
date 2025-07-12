@@ -26,7 +26,7 @@ export async function POST(request) {
         Please evaluate this response and provide a JSON response with:
         - score: number from 0-100 (100 = excellent understanding)
         - feedback: brief constructive feedback (1-2 sentences)
-        - understanding_level: one of "excellent", "good", "fair", "needs_improvement", or "not_attempted"
+        - understanding_level: one of "Excellent", "Good", "Fair", "Needs Improvement", or "Not Attempted"
 
         Focus on whether the student demonstrates understanding of the topic and provides a clear, relevant response.`;
 
@@ -49,7 +49,7 @@ export async function POST(request) {
       evaluation: {
         score: evaluation.score || 0,
         feedback: evaluation.feedback || 'No feedback available',
-        understanding_level: evaluation.understanding_level || 'not_attempted'
+        understanding_level: evaluation.understanding_level || 'Not Attempted'
       },
       questionIndex: parseInt(questionIndex)
     });

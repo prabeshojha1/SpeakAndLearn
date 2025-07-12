@@ -268,7 +268,7 @@ export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRe
             <span className="text-purple-600 font-semibold">Evaluating response...</span>
           </div>
           <p className="text-sm text-purple-500">
-            AI is analyzing your understanding
+            AI is analysing your understanding
           </p>
         </div>
       )}
@@ -309,18 +309,6 @@ export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRe
               <p className="text-gray-700 text-sm">{evaluation.feedback}</p>
             </div>
           )}
-        </div>
-      )}
-
-      {audioURL && !isRecording && !isTranscribing && !isEvaluating && !showFeedback && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-2xl">✓</span>
-            <p className="text-green-600 font-semibold">Response recorded successfully!</p>
-          </div>
-          <p className="text-sm text-green-500 text-center mt-1">
-            Ready for the next question
-          </p>
         </div>
       )}
       
