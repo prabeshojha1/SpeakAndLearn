@@ -30,7 +30,8 @@ export function QuizProvider({ children }) {
           subject,
           difficulty,
           is_active,
-          created_at
+          created_at,
+          question_time_duration
         `)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
@@ -156,12 +157,13 @@ export function QuizProvider({ children }) {
 
   const addQuiz = async (quiz) => {
     try {
-      const {title, subject, description, questions} = quiz ;
+      const {title, subject, description, question_time_duration, questions} = quiz ;
       const newQuiz = {
         title,
         category: subject,
         description,
-        is_active: true
+        is_active: true,
+        question_time_duration
       }
       const { data, error } = await supabase
         .from('quizzes')

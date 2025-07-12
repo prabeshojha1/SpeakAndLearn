@@ -60,6 +60,7 @@ export default function NewQuizPage() {
         title: formData.get('title'),
         subject: formData.get('subject'),
         description: formData.get('description'),
+        question_time_duration: formData.get('question_time_duration') || 15,
         questions,
       };
 
