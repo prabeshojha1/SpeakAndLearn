@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 
-export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRecording, setIsRecording, questionText = '', quizTitle = '', onTranscriptionStateChange, showFeedback = true }) {
+export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRecording, setIsRecording, questionText = '', quizTitle = '', suggestedAnswer = '', imageUrl = '', onTranscriptionStateChange, showFeedback = true }) {
   const [timeLeft, setTimeLeft] = useState(20); // 20 second recording
   const [audioURL, setAudioURL] = useState(null);
   const [isSupported, setIsSupported] = useState(true);
@@ -110,7 +110,10 @@ export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRe
                   body: JSON.stringify({
                     transcription: transcriptionText,
                     quizTitle: quizTitle,
-                    questionIndex: questionIndex
+                    questionIndex: questionIndex, 
+                    suggestedAnswer: suggestedAnswer,
+                    questionText: questionText,
+                    imageUrl: imageUrl
                   }),
                 });
                 
@@ -148,7 +151,7 @@ export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRe
         const reader = new FileReader();
         reader.onload = () => {
           const base64Audio = reader.result.split(',')[1]; // Remove data:audio/webm;base64, prefix
-          onRecordingComplete({
+          const recordingData = {
             audioBlob,
             audioURL: audioUrl,
             base64Audio,
@@ -157,7 +160,16 @@ export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRe
             mimeType: 'audio/webm',
             transcription: transcriptionText,
             evaluation: evaluationResult
+          };
+          
+          console.log(`Debug VoiceRecorder: Recording completed for question ${questionIndex}:`, {
+            hasBase64Audio: !!base64Audio,
+            hasTranscription: !!transcriptionText,
+            hasEvaluation: !!evaluationResult,
+            duration: 20 - timeLeft
           });
+          
+          onRecordingComplete(recordingData);
         };
         reader.readAsDataURL(audioBlob);
 

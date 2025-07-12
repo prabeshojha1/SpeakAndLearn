@@ -69,6 +69,7 @@ export default function QuizResultsPage({ params }) {
           console.log('Debug: Found game session:', gameSessions[0]);
           console.log('Debug: has_recordings:', gameSessions[0].has_recordings);
           console.log('Debug: recording_metadata:', gameSessions[0].recording_metadata);
+          console.log('Debug: audio_recordings keys:', gameSessions[0].audio_recordings ? Object.keys(gameSessions[0].audio_recordings) : 'none');
           console.log('Debug: has_evaluation:', gameSessions[0].has_evaluation);
           setGameSession(gameSessions[0]);
         } else if (sessionId) {
@@ -262,6 +263,15 @@ export default function QuizResultsPage({ params }) {
               const audioData = gameSession?.audio_recordings?.[index];
               const audioURL = audioData ? createAudioURL(audioData.audio_data, audioData.mime_type) : null;
               const metadata = gameSession?.recording_metadata?.[index];
+              
+              // Debug logging for troubleshooting
+              console.log(`Question ${index + 1} debug info:`, {
+                hasAudioData: !!audioData,
+                hasAudioURL: !!audioURL,
+                hasMetadata: !!metadata,
+                audioDataKeys: audioData ? Object.keys(audioData) : 'none',
+                metadataKeys: metadata ? Object.keys(metadata) : 'none'
+              });
               
               return (
                 <div key={index} className="border border-gray-200 p-6 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm">

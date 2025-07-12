@@ -32,20 +32,40 @@ export async function POST(request) {
       file: file,
       model: 'whisper-1',
       language: 'en',
-      prompt: `This is a voice recording answering a quiz question about: "${questionText}". Please transcribe the user's spoken response accurately.`,
       response_format: 'json',
-      temperature: 0.2, // Lower temperature for more consistent results
+      temperature: 0.0, // Set to 0 for most consistent results
     });
 
     console.log('Transcription completed for question:', questionIndex);
-    console.log('Transcribed text:', transcription.text);
+    console.log('Raw transcription:', transcription.text);
+
+    // Check if the transcription is likely invalid (no actual speech)
+    const transcribedText = transcription.text.trim();
+    const isInvalidTranscription = (
+      !transcribedText ||
+      transcribedText.toLowerCase().includes('thank you for watching') ||
+      transcribedText.toLowerCase().includes('please transcribe') ||
+      transcribedText.toLowerCase().includes('the answer is...') ||
+      transcribedText.match(/^[.\s]*$/) || // Only dots and spaces
+      transcribedText.length < 3 || // Very short responses are likely noise
+      transcribedText.toLowerCase() === 'you' ||
+      transcribedText.toLowerCase() === 'thank you' ||
+      transcribedText.toLowerCase().includes('system prompt') ||
+      transcribedText.toLowerCase().includes('spoken response')
+    );
+
+    const finalTranscription = isInvalidTranscription ? '[No speech detected]' : transcribedText;
+    
+    console.log('Final transcription:', finalTranscription);
+    console.log('Was invalid transcription detected?', isInvalidTranscription);
 
     return NextResponse.json({
       success: true,
-      transcription: transcription.text,
+      transcription: finalTranscription,
       questionIndex: parseInt(questionIndex),
       duration: transcription.duration || null,
-      language: transcription.language || null
+      language: transcription.language || null,
+      wasNoSpeechDetected: isInvalidTranscription
     });
 
   } catch (error) {
