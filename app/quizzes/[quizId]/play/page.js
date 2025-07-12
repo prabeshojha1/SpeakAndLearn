@@ -5,18 +5,23 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuiz } from '@/app/context/QuizContext';
 import { useSupabase } from '@/app/context/SupabaseContext';
+import VoiceRecorder from '@/app/components/VoiceRecorder';
 
 export default function QuizPlayPage({ params }) {
   const { quizId } = use(params);
   const router = useRouter();
   const { getQuizById } = useQuiz();
-  const { user } = useSupabase(); // Add this to get current user
+  const { user, supabase } = useSupabase();
   
   const [quiz, setQuiz] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [countdown, setCountdown] = useState(3);
   const [isRecording, setIsRecording] = useState(false);
   const [showCountdown, setShowCountdown] = useState(true);
+  const [recordings, setRecordings] = useState({}); // Store recordings by question index
+  const [gameSessionId, setGameSessionId] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
 
   useEffect(() => {
     const foundQuiz = getQuizById(quizId);
@@ -44,8 +49,30 @@ export default function QuizPlayPage({ params }) {
   const startRecording = () => {
     setShowCountdown(false);
     setIsRecording(true);
-    // Placeholder for actual recording logic
-    console.log(`Recording for question ${currentQuestionIndex + 1}...`);
+  };
+
+  const handleRecordingComplete = (recordingData) => {
+    // Store the recording data including evaluation
+    setRecordings(prev => ({
+      ...prev,
+      [currentQuestionIndex]: recordingData
+    }));
+    
+    console.log(`Recording completed for question ${currentQuestionIndex + 1}:`, recordingData);
+    
+    // Track transcription state
+    if (recordingData.transcription) {
+      console.log(`Transcription for question ${currentQuestionIndex + 1}:`, recordingData.transcription);
+    }
+
+    // Track evaluation results
+    if (recordingData.evaluation) {
+      console.log(`Evaluation for question ${currentQuestionIndex + 1}:`, recordingData.evaluation);
+    }
+  };
+
+  const handleTranscriptionStateChange = (isTranscribingNow) => {
+    setIsTranscribing(isTranscribingNow);
   };
 
   const handleNext = () => {
@@ -54,7 +81,52 @@ export default function QuizPlayPage({ params }) {
     if (currentQuestionIndex < quiz.questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     } else {
-      router.push(`/quizzes/${quizId}/results`);
+      handleQuizComplete();
+    }
+  };
+
+  const handleQuizComplete = async () => {
+    setIsSubmitting(true);
+    
+    try {
+      // Create or update game session with audio recordings
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        alert('Please log in to save your recordings.');
+        router.push('/auth');
+        return;
+      }
+
+      console.log('Sending recordings to API:', recordings);
+      
+      const response = await fetch('/api/game-sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ 
+          quizId: quizId,
+          recordings: recordings,
+          isCompleted: true
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save recordings');
+      }
+
+      const gameSession = await response.json();
+      console.log('Game session saved with recordings:', gameSession);
+      
+      // Navigate to results page with session ID for better data retrieval
+      router.push(`/quizzes/${quizId}/results?sessionId=${gameSession.id}`);
+    } catch (error) {
+      console.error('Error saving recordings:', error);
+      alert('Failed to save recordings. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
@@ -91,11 +163,32 @@ export default function QuizPlayPage({ params }) {
                 <img src={currentQuestion.imageUrl} alt="Quiz visual" className="w-full h-auto max-h-[50vh] object-contain rounded-lg bg-gray-100 shadow-md" />
             </div>
 
+            {/* Voice Recorder Component */}
+            <div className="mb-6">
+                <VoiceRecorder 
+                  onRecordingComplete={handleRecordingComplete}
+                  questionIndex={currentQuestionIndex}
+                  questionText={currentQuestion.description}
+                  quizTitle={quiz.title}
+                  isRecording={isRecording}
+                  setIsRecording={setIsRecording}
+                  onTranscriptionStateChange={handleTranscriptionStateChange}
+                />
+            </div>
+
             <button 
               onClick={handleNext}
-              className="w-full bg-pink-500 text-white font-bold py-4 rounded-xl text-2xl hover:bg-pink-600 transition-all transform hover:scale-105"
+              disabled={isRecording || isSubmitting || isTranscribing}
+              className={`w-full font-bold py-4 rounded-xl text-2xl transition-all transform hover:scale-105 ${
+                isRecording || isSubmitting || isTranscribing
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-pink-500 hover:bg-pink-600 text-white'
+              }`}
             >
-              {isLastQuestion ? 'Finish' : 'Next Question'}
+              {isSubmitting ? 'Saving...' : 
+               isTranscribing ? 'Processing...' : 
+               isRecording ? 'Recording...' : 
+               isLastQuestion ? 'Finish' : 'Next Question'}
             </button>
         </div>
     </div>
