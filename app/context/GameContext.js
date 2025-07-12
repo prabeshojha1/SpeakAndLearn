@@ -180,7 +180,8 @@ export function GameProvider({ children }) {
           image_url: fileObj.imageUrl,
           correct_answer: fileObj.answer || '',
           question_text: description || '',
-          text_body: fileObj.questionText || ''  
+          text_body: fileObj.questionText || '',
+          question_type: fileObj.question_type || 'text'
         };
 
         let { _, error } = await supabase
@@ -300,7 +301,7 @@ export function GameProvider({ children }) {
     try {
       const { data, error } = await supabase
         .from('game_questions')
-        .select('id, image_url, question_text, correct_answer')
+        .select('id, image_url, question_text, correct_answer, text_body, question_type')
         .eq('game_id', gameId);
 
       if (error) {
@@ -313,7 +314,9 @@ export function GameProvider({ children }) {
         game_id: gameId,
         imageUrl: question.image_url,
         description: question.question_text || '',
-        answer: question.correct_answer || ''
+        answer: question.correct_answer || '',
+        text_body: question.text_body || '',
+        question_type: question.question_type || 'image'
       }));
     } catch (err) {
       console.error('Error getting questions:', err);

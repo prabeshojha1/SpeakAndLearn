@@ -211,7 +211,9 @@ export function QuizProvider({ children }) {
           image_url: questionObj.imageUrl || null,
           correct_answer: questionObj.answer || '',
           question_text: questionObj.questionText || questionObj.description || '',  
-          order_index: index
+          order_index: index,
+          text_body: questionObj.questionText || '',
+          question_type: questionObj.question_type || 'image'
         };
 
         let { _, error } = await supabase
@@ -332,7 +334,7 @@ export function QuizProvider({ children }) {
     try {
       const { data, error } = await supabase
         .from('questions')
-        .select('id, image_url, question_text, correct_answer, order_index')
+        .select('id, image_url, question_text, correct_answer, order_index, text_body, question_type')
         .eq('quiz_id', quizId)
         .order('order_index', { ascending: true });
 
@@ -347,7 +349,10 @@ export function QuizProvider({ children }) {
         imageUrl: question.image_url,
         description: question.question_text || '',
         answer: question.correct_answer || '',
-        orderIndex: question.order_index
+        orderIndex: question.order_index,
+        text_body: question.text_body || '',
+        question_type: question.question_type || 'image'
+
       }));
     } catch (err) {
       console.error('Error getting questions:', err);

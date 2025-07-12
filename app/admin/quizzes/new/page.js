@@ -103,6 +103,7 @@ export default function NewQuizPage() {
                 return {
                 imageUrl: publicData.publicUrl,
                 answer: item.description || '',
+                question_type: questionType || 'image'
                 };
             })
             );
@@ -111,6 +112,7 @@ export default function NewQuizPage() {
             questions = textQuestions.map(q => ({
             questionText: q.question,
             answer: q.answer,
+            question_type: questionType || 'image'
           }));
         }
 

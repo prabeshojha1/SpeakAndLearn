@@ -68,7 +68,11 @@ export default function ViewQuizPage({ params }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {questions.map((q, index) => (
                         <div key={index} className="border rounded-lg p-3 bg-gray-50">
-                            <img src={q.imageUrl} alt={`Question ${index + 1}`} className="w-full h-40 object-cover rounded-lg bg-gray-200 mb-3" />
+                          {q.question_type == 'image' ? (
+                              <img src={q.imageUrl} alt={`Question ${index + 1}`} className="w-full h-40 object-cover rounded-lg bg-gray-200 mb-3" />
+                            ) : (
+                              <p className="text-sm text-gray-700"><span className="font-bold">Text Body:</span> {q.text_body}</p>
+                            )}
                             <p className="text-sm text-gray-700"><span className="font-bold">Answer:</span> {q.answer}</p>
                         </div>
                     ))}
