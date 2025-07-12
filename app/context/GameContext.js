@@ -172,12 +172,15 @@ export function GameProvider({ children }) {
         .single();
       
       // Used data from created game to get the ID for the questions
+      console.log('Game created:', data);
+      console.log('Questions to upload:', questions);
       for (const fileObj of questions) {
         let questionInfo = {
           game_id: data.id,
           image_url: fileObj.imageUrl,
           correct_answer: fileObj.answer || '',
-          question_text: description || '',  
+          question_text: description || '',
+          text_body: fileObj.questionText || ''  
         };
 
         let { _, error } = await supabase
@@ -212,7 +215,7 @@ export function GameProvider({ children }) {
     return games.filter(game => game.category === category);
   };
 
-  const refreshGame = () => {
+  const refreshGames = () => {
     fetchGames();
   };
 
@@ -327,7 +330,7 @@ export function GameProvider({ children }) {
       getGameById, 
       getGamesByDifficulty, 
       getGamesByCategory,
-      refreshGame,
+      refreshGames,
       deleteGame,
       getQuestionsByGameId
     }}>

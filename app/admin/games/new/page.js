@@ -21,7 +21,7 @@ export default function NewGamePage() {
   const [gameFiles, setGameFiles] = useState([]);
   const [bannerFile, setBannerFile] = useState(null);
   const [questionType, setQuestionType] = useState('image');
-  const [textQuestions, setTextQuestions] = useState([{ question: '', answer: '' }]);
+  const [textQuestions, setTextQuestions] = useState([{ question: '', answer: ''}]);
   const [difficulty, setDifficulty] = useState('Easy');
   const [timePerQuestion, setTimePerQuestion] = useState(30); // Default 30 seconds per question
   const { addGame, refreshGames } = useGame();
@@ -36,7 +36,7 @@ export default function NewGamePage() {
   };
 
   const handleAddTextQuestion = () => {
-    setTextQuestions([...textQuestions, { question: '', answer: '' }]);
+    setTextQuestions([...textQuestions, { question: '', answer: ''}]);
   };
 
   const handleRemoveTextQuestion = (index) => {
