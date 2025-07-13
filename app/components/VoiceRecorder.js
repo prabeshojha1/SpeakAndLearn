@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 
-export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRecording, setIsRecording, questionText = '', quizTitle = '', suggestedAnswer = '', imageUrl = '', onTranscriptionStateChange, showFeedback = true }) {
-  const [timeLeft, setTimeLeft] = useState(20); // 20 second recording
+export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRecording, setIsRecording, quizTimePerQuestion, questionText = '', quizTitle = '', suggestedAnswer = '', imageUrl = '', onTranscriptionStateChange, showFeedback = true }) {
+  const [timeLeft, setTimeLeft] = useState(quizTimePerQuestion); // 20 second recording
   const [audioURL, setAudioURL] = useState(null);
   const [isSupported, setIsSupported] = useState(true);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -36,7 +36,7 @@ export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRe
     try {
       // Reset previous recording data
       audioChunks.current = [];
-      setTimeLeft(20);
+      setTimeLeft(quizTimePerQuestion);
       setAudioURL(null);
       setTranscription('');
       setEvaluation(null);
@@ -156,18 +156,12 @@ export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRe
             audioURL: audioUrl,
             base64Audio,
             questionIndex,
-            duration: 20 - timeLeft,
+            duration: timeLeft - timeLeft,
             mimeType: 'audio/webm',
             transcription: transcriptionText,
             evaluation: evaluationResult
           };
           
-          console.log(`Debug VoiceRecorder: Recording completed for question ${questionIndex}:`, {
-            hasBase64Audio: !!base64Audio,
-            hasTranscription: !!transcriptionText,
-            hasEvaluation: !!evaluationResult,
-            duration: 20 - timeLeft
-          });
           
           onRecordingComplete(recordingData);
         };
@@ -327,7 +321,7 @@ export default function VoiceRecorder({ onRecordingComplete, questionIndex, isRe
       {!isRecording && !audioURL && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-blue-600">
-            Get ready to record your voice for 20 seconds
+            Get ready to record your voice for {quizTimePerQuestion} seconds
           </p>
         </div>
       )}

@@ -93,7 +93,7 @@ export function QuizProvider({ children }) {
           subject: quiz.subject,
           difficulty: quiz.difficulty || 'medium',
           coverImageUrl: quiz.banner_url || '/placeholder.svg', // Use banner_url if available
-          bannerUrl: quiz.banner_url, // Also keep separate bannerUrl field
+          bannerUrl: quiz.banner_url, 
           expectedTimeSec: (quiz.time_per_question || 30) * questions.length, // Total time based on questions
           timePerQuestion: quiz.time_per_question || 30, // Time per individual question
           questions: questions

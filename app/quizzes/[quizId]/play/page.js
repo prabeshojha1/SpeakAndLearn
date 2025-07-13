@@ -5,13 +5,16 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuiz } from '@/app/context/QuizContext';
 import { useSupabase } from '@/app/context/SupabaseContext';
+import { useRequireAuth } from '@/app/hooks/useAuthGuard';
+import AuthGuard from '@/app/components/AuthGuard';
 import VoiceRecorder from '@/app/components/VoiceRecorder';
 
-export default function QuizPlayPage({ params }) {
+function QuizPlayContent({ params }) {
   const { quizId } = use(params);
   const router = useRouter();
   const { getQuizById } = useQuiz();
   const { user, supabase } = useSupabase();
+  const { isAuthenticated } = useRequireAuth();
   
   const [quiz, setQuiz] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -167,6 +170,10 @@ export default function QuizPlayPage({ params }) {
     return <div className="min-h-screen animated-gradient flex items-center justify-center"><p>Loading Quiz...</p></div>;
   }
 
+  if (!isAuthenticated) {
+    return null; // AuthGuard will handle this
+  }
+
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === quiz.questions.length - 1;
 
@@ -214,6 +221,7 @@ export default function QuizPlayPage({ params }) {
                   onRecordingComplete={handleRecordingComplete}
                   questionIndex={currentQuestionIndex}
                   questionText={currentQuestion.questionText || currentQuestion.description}
+                  quizTimePerQuestion={quiz.timePerQuestion}
                   suggestedAnswer={currentQuestion.correct_answer || currentQuestion.answer}
                   imageUrl={currentQuestion.imageUrl}
                   quizTitle={quiz.title}
@@ -239,5 +247,13 @@ export default function QuizPlayPage({ params }) {
             </button>
         </div>
     </div>
+  );
+}
+
+export default function QuizPlayPage({ params }) {
+  return (
+    <AuthGuard requireAuth={true}>
+      <QuizPlayContent params={params} />
+    </AuthGuard>
   );
 }

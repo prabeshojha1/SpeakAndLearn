@@ -3,6 +3,8 @@
 
 import Link from 'next/link';
 import { useQuiz } from '@/app/context/QuizContext';
+import { useRequireAuth } from '@/app/hooks/useAuthGuard';
+import AuthGuard from '@/app/components/AuthGuard';
 import { FaPlus, FaTrash } from 'react-icons/fa';
 
 const subjectColors = {
@@ -14,8 +16,9 @@ const subjectColors = {
   Default: 'bg-gray-200 border-gray-400',
 };
 
-export default function AdminQuizzesPage() {
+function AdminQuizzesContent() {
   const { quizzes, loading, error, refreshQuizzes, deleteQuiz } = useQuiz();
+  const { user } = useRequireAuth();
 
   if (loading) {
     return (
@@ -82,7 +85,12 @@ export default function AdminQuizzesPage() {
       <header className="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-10">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Your Quizzes</h1>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Your Quizzes</h1>
+                  {user && (
+                    <p className="text-sm text-gray-600">User: {user.email}</p>
+                  )}
+                </div>
                 <Link href="/admin/quizzes/new">
                     <button className="flex items-center gap-2 bg-blue-500 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-600 transition-transform hover:scale-105"> {/* Changed from bg-pink-500 and hover:bg-pink-600 */}
                         <FaPlus />
@@ -131,5 +139,13 @@ export default function AdminQuizzesPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function AdminQuizzesPage() {
+  return (
+    <AuthGuard requireAuth={true}>
+      <AdminQuizzesContent />
+    </AuthGuard>
   );
 }

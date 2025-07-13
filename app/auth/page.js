@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSupabase } from '../context/SupabaseContext';
+import { useRedirectIfAuthenticated } from '../hooks/useAuthGuard';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,6 +13,9 @@ export default function AuthPage() {
   const [error, setError] = useState('');
   const { supabase } = useSupabase();
   const router = useRouter();
+
+  // Redirect authenticated users to quizzes page
+  useRedirectIfAuthenticated('/quizzes');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -113,6 +117,10 @@ export default function AuthPage() {
             </button>
           </div>
         </form>
+        
+        <div className="mt-6 text-center text-sm text-gray-600">
+          <p>Admin users: Use an email containing "admin" to access admin features</p>
+        </div>
       </div>
     </div>
   );

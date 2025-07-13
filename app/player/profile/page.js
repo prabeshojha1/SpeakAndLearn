@@ -4,6 +4,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSupabase } from '@/app/context/SupabaseContext';
+import { useRequireAuth } from '@/app/hooks/useAuthGuard';
+import AuthGuard from '@/app/components/AuthGuard';
 import StudentFooter from '@/app/components/StudentFooter';
 
 // Hardcoded data for the student's profile
@@ -25,9 +27,8 @@ const subjectColors = {
   Default: 'bg-gray-100 text-gray-800 border-gray-200',
 };
 
-
-export default function PlayerProfilePage() {
-    const { user } = useSupabase();
+function ProfileContent() {
+  const { user } = useRequireAuth();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -48,6 +49,9 @@ export default function PlayerProfilePage() {
                         Hello, {user?.email || profile.name}!
                     </h1>
                     <p className="text-lg text-gray-600 mt-1">Welcome back, ready for a new challenge?</p>
+                    <div className="mt-2 text-sm text-gray-500">
+                      Account: {user?.email}
+                    </div>
                 </div>
             </div>
           
@@ -90,5 +94,13 @@ export default function PlayerProfilePage() {
       </main>
       <StudentFooter />
     </div>
+  );
+}
+
+export default function PlayerProfilePage() {
+  return (
+    <AuthGuard requireAuth={true}>
+      <ProfileContent />
+    </AuthGuard>
   );
 }
