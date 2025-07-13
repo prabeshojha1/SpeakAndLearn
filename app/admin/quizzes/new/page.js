@@ -4,10 +4,11 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuiz } from '@/app/context/QuizContext';
+import { useRequireAuth } from '@/app/hooks/useAuthGuard';
+import AuthGuard from '@/app/components/AuthGuard';
 import ImageDropzone from '@/app/components/ImageDropzone';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/lib/supabase'
-
 
 const subjects = ['Maths', 'Science', 'English', 'History', 'Geography'];
 const difficultyLevels = ['Easy', 'Medium', 'Hard'];
@@ -17,7 +18,7 @@ const difficultyColorClasses = {
     Hard: 'text-red-700',
   };
 
-export default function NewQuizPage() {
+function NewQuizContent() {
   const [quizFiles, setQuizFiles] = useState([]);
   const [bannerFile, setBannerFile] = useState(null);
   const [questionType, setQuestionType] = useState('image');
@@ -25,6 +26,7 @@ export default function NewQuizPage() {
   const [difficulty, setDifficulty] = useState('Easy');
   const [timePerQuestion, setTimePerQuestion] = useState(30); // Default 30 seconds per question
   const { addQuiz, refreshQuizzes } = useQuiz();
+  const { user } = useRequireAuth();
   const router = useRouter();
 
   const handleQuizFilesChange = (files) => {
@@ -141,7 +143,12 @@ export default function NewQuizPage() {
             <Link href="/admin/quizzes" className="text-blue-600 hover:text-blue-800 font-semibold">
               &larr; Cancel
             </Link>
-            <h1 className="text-2xl font-bold">Create New Quiz</h1>
+            <div className="text-center">
+              <h1 className="text-2xl font-bold">Create New Quiz</h1>
+              {user && (
+                <p className="text-sm text-gray-600">User: {user.email}</p>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -198,142 +205,121 @@ export default function NewQuizPage() {
               <div>
                 <label className="block text-gray-800 font-semibold mb-2">Question Type</label>
                 <div className="flex items-center gap-4">
-                    <label className="flex items-center">
-                        <input
-                            type="radio"
-                            name="questionType"
-                            value="image"
-                            checked={questionType === 'image'}
-                            onChange={() => setQuestionType('image')}
-                            className="mr-2 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-gray-700">Image Questions</span>
-                    </label>
-                    <label className="flex items-center">
-                        <input
-                            type="radio"
-                            name="questionType"
-                            value="text"
-                            checked={questionType === 'text'}
-                            onChange={() => setQuestionType('text')}
-                            className="mr-2 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-gray-700">Text Questions</span>
-                    </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="questionType"
+                      value="image"
+                      checked={questionType === 'image'}
+                      onChange={(e) => setQuestionType(e.target.value)}
+                      className="mr-2"
+                    />
+                    Image Questions
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="questionType"
+                      value="text"
+                      checked={questionType === 'text'}
+                      onChange={(e) => setQuestionType(e.target.value)}
+                      className="mr-2"
+                    />
+                    Text Questions
+                  </label>
                 </div>
               </div>
-
               <div>
                 <label htmlFor="timePerQuestion" className="block text-gray-800 font-semibold mb-2">Time Per Question (seconds)</label>
                 <input
                   type="number"
                   id="timePerQuestion"
                   name="timePerQuestion"
+                  value={timePerQuestion}
+                  onChange={(e) => setTimePerQuestion(Number(e.target.value))}
                   min="10"
                   max="300"
-                  value={timePerQuestion}
-                  onChange={(e) => setTimePerQuestion(parseInt(e.target.value))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
-                <p className="text-sm text-gray-600 mt-1">
-                  Students will have {timePerQuestion} seconds to answer each question.
-                </p>
               </div>
             </div>
 
             <div className="mb-4">
-                <label className="block text-gray-800 font-semibold mb-2">Difficulty Level</label>
-                <div className="flex items-center gap-6">
-                    {difficultyLevels.map(level => (
-                        <label key={level} className={`flex items-center font-semibold ${difficultyColorClasses[level]}`}>
-                            <input
-                                type="radio"
-                                name="difficulty"
-                                value={level}
-                                checked={difficulty === level}
-                                onChange={() => setDifficulty(level)}
-                                className="mr-2 text-blue-600 focus:ring-blue-500"
-                            />
-                            <span>{level}</span>
-                        </label>
-                    ))}
-                </div>
+              <label className="block text-gray-800 font-semibold mb-2">Difficulty Level</label>
+              <div className="flex items-center gap-4">
+                {difficultyLevels.map(level => (
+                  <label key={level} className="flex items-center">
+                    <input
+                      type="radio"
+                      name="difficulty"
+                      value={level}
+                      checked={difficulty === level}
+                      onChange={(e) => setDifficulty(e.target.value)}
+                      className="mr-2"
+                    />
+                    <span className={`${difficultyColorClasses[level]} font-medium`}>{level}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             {questionType === 'image' ? (
-                <div className="mb-4">
-                <label className="block text-gray-800 font-semibold mb-2">Quiz Questions (Images & Answers)</label>
+              <div className="mb-4">
+                <label className="block text-gray-800 font-semibold mb-2">Quiz Images</label>
                 <ImageDropzone onFilesChange={handleQuizFilesChange} />
-                <p className="text-sm text-gray-700 mt-2">
-                    The descriptions you enter will be used as the 'correct answer' for the AI to grade against.
+                <p className="text-sm text-gray-600 mt-2">
+                  Upload images for your quiz. Each image should represent a question that students will answer by describing what they see.
                 </p>
-                </div>
+              </div>
             ) : (
-                <div className="mb-4">
-                    <label className="block text-gray-800 font-semibold mb-2">Quiz Questions (Text & Answers)</label>
-                    <div className="space-y-4">
-                        {textQuestions.map((q, index) => (
-                            <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                <div className="flex justify-between items-center mb-3">
-                                    <h4 className="font-semibold text-gray-800">Question {index + 1}</h4>
-                                    {textQuestions.length > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveTextQuestion(index)}
-                                            className="text-red-600 hover:text-red-800 font-medium text-sm"
-                                        >
-                                            Remove
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="grid grid-cols-1 gap-4">
-                                    <div>
-                                        <label htmlFor={`question-${index}`} className="block text-gray-700 font-medium mb-1">Question Text</label>
-                                        <input
-                                            type="text"
-                                            id={`question-${index}`}
-                                            name={`question-${index}`}
-                                            placeholder="e.g. What is the capital of Australia?"
-                                            required
-                                            value={q.question}
-                                            onChange={(e) => handleTextQuestionChange(index, 'question', e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label htmlFor={`answer-${index}`} className="block text-gray-700 font-medium mb-1">Correct Answer</label>
-                                        <input
-                                            type="text"
-                                            id={`answer-${index}`}
-                                            name={`answer-${index}`}
-                                            placeholder="e.g. Canberra"
-                                            required
-                                            value={q.answer}
-                                            onChange={(e) => handleTextQuestionChange(index, 'answer', e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+              <div className="mb-4">
+                <label className="block text-gray-800 font-semibold mb-2">Text Questions</label>
+                {textQuestions.map((q, index) => (
+                  <div key={index} className="mb-4 p-4 border border-gray-200 rounded-lg">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="font-medium text-gray-800">Question {index + 1}</h4>
+                      {textQuestions.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTextQuestion(index)}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          Remove
+                        </button>
+                      )}
                     </div>
-                     <button
-                        type="button"
-                        onClick={handleAddTextQuestion}
-                        className="mt-4 bg-gray-500 text-white font-bold py-2 px-4 rounded-full hover:bg-gray-600 transition-transform hover:scale-105"
-                    >
-                        Add Another Question
-                    </button>
-                    <p className="text-sm text-gray-700 mt-2">
-                        Students will speak their answers, and the AI will grade them against the correct answers you provide.
-                    </p>
-                </div>
+                    <input
+                      type="text"
+                      placeholder="Enter your question"
+                      value={q.question}
+                      onChange={(e) => handleTextQuestionChange(index, 'question', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      required
+                    />
+                    <input
+                      type="text"
+                      placeholder="Enter the expected answer"
+                      value={q.answer}
+                      onChange={(e) => handleTextQuestionChange(index, 'answer', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      required
+                    />
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={handleAddTextQuestion}
+                  className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors"
+                >
+                  + Add Another Question
+                </button>
+              </div>
             )}
 
-            <div className="flex justify-end gap-4 mt-6">
+            <div className="flex justify-end">
               <button
                 type="submit"
-                className="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition-transform hover:scale-105"
+                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors"
               >
                 Create Quiz
               </button>
@@ -342,5 +328,13 @@ export default function NewQuizPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function NewQuizPage() {
+  return (
+    <AuthGuard requireAuth={true}>
+      <NewQuizContent />
+    </AuthGuard>
   );
 }

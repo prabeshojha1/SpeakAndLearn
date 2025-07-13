@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useQuiz } from '@/app/context/QuizContext';
+import { useRequireAuth } from '@/app/hooks/useAuthGuard';
+import AuthGuard from '@/app/components/AuthGuard';
 import StudentFooter from '../components/StudentFooter';
 
 // Fallback images for quizzes without uploaded banners
@@ -33,8 +35,9 @@ const subjectTagColors = {
   Default: 'bg-gray-100 text-gray-800',
 };
 
-export default function PlayerQuizzesPage() {
+function QuizzesContent() {
   const { quizzes = [], loading, error, refreshQuizzes } = useQuiz();
+  const { user } = useRequireAuth();
 
   if (loading) {
     return (
@@ -70,6 +73,11 @@ export default function PlayerQuizzesPage() {
         <div className="mb-12 text-center">
           <h1 className="text-5xl font-extrabold text-gray-900 mb-3">Explore Quizzes</h1>
           <p className="text-xl text-gray-600">Choose a topic to start your learning adventure!</p>
+          {user && (
+            <div className="mt-4 text-lg text-gray-700">
+              Welcome back, <span className="font-semibold">{user.email}</span>!
+            </div>
+          )}
         </div>
 
         {quizzes.length === 0 ? (
@@ -138,5 +146,13 @@ export default function PlayerQuizzesPage() {
       </main>
       <StudentFooter />
     </div>
+  );
+}
+
+export default function PlayerQuizzesPage() {
+  return (
+    <AuthGuard requireAuth={true}>
+      <QuizzesContent />
+    </AuthGuard>
   );
 }

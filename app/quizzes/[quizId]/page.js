@@ -1,108 +1,140 @@
 
 "use client";
 
+import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import React, { useState, use } from 'react';
+import Image from 'next/image';
 import { useQuiz } from '@/app/context/QuizContext';
-import { useSupabase } from '@/app/context/SupabaseContext';
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRequireAuth } from '@/app/hooks/useAuthGuard';
+import AuthGuard from '@/app/components/AuthGuard';
+import StudentFooter from '@/app/components/StudentFooter';
 
-export default function QuizDetailPage({ params }) {
+const subjectColors = {
+  Science: 'bg-green-100 text-green-800',
+  History: 'bg-red-100 text-red-800',
+  Maths: 'bg-blue-100 text-blue-800',
+  English: 'bg-yellow-100 text-yellow-800',
+  Geography: 'bg-purple-100 text-purple-800',
+  Default: 'bg-gray-100 text-gray-800'
+};
+
+function QuizDetailContent({ params }) {
   const { quizId } = use(params);
   const { getQuizById } = useQuiz();
-  const { supabase } = useSupabase();
+  const { user } = useRequireAuth();
   const [quiz, setQuiz] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
-    if (quizId) {
-      const foundQuiz = getQuizById(quizId);
-      setQuiz(foundQuiz);
-    }
+    const foundQuiz = getQuizById(quizId);
+    setQuiz(foundQuiz);
   }, [quizId, getQuizById]);
 
-  const handleStartQuiz = async () => {
-    setIsLoading(true);
-    try {
-      // Get the current session to include in the API call
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        alert('Please log in to start the quiz.');
-        router.push('/auth');
-        return;
-      }
-
-      console.log('Quiz ID (integer):', quizId, typeof quizId);
-      console.log('User ID:', session.user.id);
-
-      // Create game session using the database helper via API
-      const response = await fetch('/api/game-sessions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({ 
-          quizId: quizId // Now a proper UUID
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to start quiz');
-      }
-
-      const gameSession = await response.json();
-      console.log('Game session created:', gameSession);
-      
-      // Redirect to play page
-      router.push(`/quizzes/${quiz.id}/play`);
-    } catch (error) {
-      console.error('Error starting quiz:', error);
-      alert('Failed to start quiz. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   if (!quiz) {
-    return <div className="min-h-screen animated-gradient flex items-center justify-center"><p>Loading...</p></div>;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen animated-gradient flex flex-col"> {/* Keep min-h-screen and gradient here, make it a column flex container */}
-      <main className="flex-grow flex items-center justify-center container mx-auto p-4 sm:p-6 lg:p-8"> {/* Main takes all available space and centers its content */}
-        <div className="bg-white/80 p-8 rounded-2xl shadow-xl max-w-4xl w-full">
-            <img src={quiz.coverImageUrl || '/placeholder.svg'} alt={quiz.title} className="w-full h-64 object-cover rounded-lg mb-6 bg-gray-200" />
-            <h2 className="text-4xl font-extrabold text-gray-800 mb-4">{quiz.title}</h2>
-            <p className="text-gray-700 mb-6 text-lg">{quiz.description}</p>
-            
-            <div className="mb-6">
-                <h3 className="text-xl font-semibold mb-3 text-gray-700">A Sneak Peek</h3>
-                <div className="flex items-center gap-4 p-4 bg-pink-50/50 rounded-lg">
-                    {quiz.questions.map((q, index) => (
-                        <React.Fragment key={q.imageUrl + index}>
-                            <img src={q.imageUrl} alt={`Question ${index + 1}`} className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg bg-gray-200 shadow-sm" />
-                            {index < quiz.questions.length - 1 && <div className="text-2xl font-bold text-pink-400">&rarr;</div>}
-                        </React.Fragment>
-                    ))}
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <Link href="/quizzes" className="text-blue-500 hover:text-blue-700 font-semibold mb-4 inline-block">
+              &larr; Back to Quizzes
+            </Link>
+            <div className="text-center">
+              <h1 className="text-4xl font-extrabold text-gray-900 mb-2">{quiz.title}</h1>
+              {user && (
+                <p className="text-lg text-gray-600">Playing as: {user.email}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Quiz Card */}
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+            {/* Banner Image */}
+            <div className={`relative h-64 ${quiz.bannerUrl ? 'bg-gray-900' : 'bg-black'}`}>
+              {quiz.bannerUrl && (
+                <Image
+                  src={quiz.bannerUrl}
+                  alt={quiz.title}
+                  fill
+                  className="object-cover"
+                />
+              )}
+              <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                <div className="text-center text-white">
+                  <h2 className="text-3xl font-bold mb-2">{quiz.title}</h2>
+                  <p className="text-lg">{quiz.description || 'No description available'}</p>
                 </div>
+              </div>
             </div>
 
-            <p className="text-lg font-semibold mb-8 text-gray-600">Expected time: {quiz.expectedTimeSec ? `${Math.floor(quiz.expectedTimeSec / 60)} minutes` : 'N/A'}</p>
+            {/* Quiz Info */}
+            <div className="p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Subject</h3>
+                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${subjectColors[quiz.subject] || subjectColors.Default}`}>
+                    {quiz.subject}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Difficulty</h3>
+                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                    quiz.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
+                    quiz.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {quiz.difficulty ? quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1) : 'Not specified'}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Questions</h3>
+                  <p className="text-gray-600">{quiz.questions?.length || 0} questions</p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Time per Question</h3>
+                  <p className="text-gray-600">{quiz.timePerQuestion || 30} seconds</p>
+                </div>
+              </div>
 
-            <button 
-              onClick={handleStartQuiz}
-              disabled={isLoading}
-              className="w-full bg-pink-500 text-white font-bold py-4 px-8 rounded-xl text-2xl hover:bg-pink-600 transition-all transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            >
-              {isLoading ? 'Starting Quiz...' : "Let's Go!"}
-            </button>
+              {/* Description */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">About This Quiz</h3>
+                <p className="text-gray-600 leading-relaxed">{quiz.description}</p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href={`/quizzes/${quizId}/play`}>
+                  <button className="w-full sm:w-auto px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg text-lg transition-colors transform hover:scale-105">
+                    Start Quiz
+                  </button>
+                </Link>
+                <Link href={`/quizzes/${quizId}/results`}>
+                  <button className="w-full sm:w-auto px-8 py-3 bg-gray-500 hover:bg-gray-600 text-white font-bold rounded-lg text-lg transition-colors">
+                    View Results
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
+      <StudentFooter />
     </div>
+  );
+}
+
+export default function QuizDetailPage({ params }) {
+  return (
+    <AuthGuard requireAuth={true}>
+      <QuizDetailContent params={params} />
+    </AuthGuard>
   );
 }
