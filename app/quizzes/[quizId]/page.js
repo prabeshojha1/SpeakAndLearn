@@ -56,8 +56,7 @@ function QuizDetailContent({ params }) {
 
           {/* Quiz Card */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
-            {/* Banner Image */}
-            <div className={`relative h-64 ${quiz.bannerUrl ? 'bg-gray-900' : 'bg-black'}`}>
+            <div className={`relative h-64 ${quiz.bannerUrl ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-500 to-purple-600'}`}>
               {quiz.bannerUrl && (
                 <Image
                   src={quiz.bannerUrl}
@@ -66,10 +65,13 @@ function QuizDetailContent({ params }) {
                   className="object-cover"
                 />
               )}
-              <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                <div className="text-center text-white">
-                  <h2 className="text-3xl font-bold mb-2">{quiz.title}</h2>
-                  <p className="text-lg">{quiz.description || 'No description available'}</p>
+              {/* Backdrop blur overlay */}
+              <div className="absolute inset-0 backdrop-blur-sm bg-black/20"></div>
+              {/* Text overlay */}
+              <div className="absolute inset-0 flex items-center justify-center z-10">
+                <div className="text-center text-white px-6">
+                  <h2 className="text-3xl font-bold mb-2 drop-shadow-lg">{quiz.title}</h2>
+                  <p className="text-lg drop-shadow-md">{quiz.description || 'No description available'}</p>
                 </div>
               </div>
             </div>

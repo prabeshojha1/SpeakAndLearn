@@ -33,8 +33,8 @@ function NewQuizContent() {
     setQuizFiles(files);
   };
 
-  const handleBannerFileChange = (files) => {
-    setBannerFile(files[0] || null);
+  const handleBannerFileChange = (file) => {
+    setBannerFile(file || null);
   };
 
   const handleAddTextQuestion = () => {
@@ -105,6 +105,7 @@ function NewQuizContent() {
                 return {
                 imageUrl: publicData.publicUrl,
                 answer: item.description || '',
+                question_type: questionType || 'image'
                 };
             })
             );
@@ -113,6 +114,7 @@ function NewQuizContent() {
             questions = textQuestions.map(q => ({
             questionText: q.question,
             answer: q.answer,
+            question_type: questionType || 'image'
           }));
         }
 
@@ -195,7 +197,7 @@ function NewQuizContent() {
 
             <div className="mb-4">
               <label className="block text-gray-800 font-semibold mb-2">Banner Image</label>
-              <ImageDropzone onFilesChange={handleBannerFileChange} />
+              <ImageDropzone onFilesChange={handleBannerFileChange} single={true}/>
               <p className="text-sm text-gray-600 mt-2">
                 Upload a banner image for your quiz. This will be displayed on the quiz card and details page.
               </p>

@@ -90,18 +90,18 @@ function ViewQuizContent({ params }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {questions.map((q, index) => (
                         <div key={index} className="border rounded-lg p-3 bg-gray-50">
-                            {q.imageUrl ? (
+                            {q.question_type === 'image' ? (
                               <>
                                 <img src={q.imageUrl} alt={`Question ${index + 1}`} className="w-full h-40 object-cover rounded-lg bg-gray-200 mb-3" />
-                                <p className="text-sm text-gray-700"><span className="font-bold">Expected Answer:</span> {q.answer}</p>
+                                <p className="text-sm text-gray-700"><span className="font-bold">Answer:</span> {q.answer}</p>
                               </>
                             ) : (
                               <>
                                 <div className="bg-blue-100 p-4 rounded-lg mb-3">
                                   <p className="text-sm font-bold text-blue-800">Question {index + 1}:</p>
-                                  <p className="text-sm text-blue-700">{q.questionText}</p>
+                                  <p className="text-sm text-blue-700">{q.text_body || q.questionText}</p>
                                 </div>
-                                <p className="text-sm text-gray-700"><span className="font-bold">Expected Answer:</span> {q.answer}</p>
+                                <p className="text-sm text-gray-700"><span className="font-bold">Answer:</span> {q.answer}</p>
                               </>
                             )}
                         </div>

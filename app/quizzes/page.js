@@ -7,15 +7,7 @@ import { useRequireAuth } from '@/app/hooks/useAuthGuard';
 import AuthGuard from '@/app/components/AuthGuard';
 import StudentFooter from '../components/StudentFooter';
 
-// Fallback images for quizzes without uploaded banners
-const quizImages = {
-  "Solar System": "/pictures/nasagetsnewc.jpg",
-  "World Capitals": "/pictures/Botany20Bay.jpg",
-  "Basic Algebra": "/pictures/istockphoto-175432830-612x612.jpg",
-  "Chemistry Basics": "/pictures/recycled-robots1.png",
-};
-
-const defaultImage = "/image.webp"; // Changed from pumpkin to placeholder
+const defaultImage = "/image.webp";
 
 const subjectColors = {
   Maths: 'text-blue-600',
@@ -68,9 +60,8 @@ function QuizzesContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col"> {/* Added flex flex-col to parent div */}
-      <main className="container mx-auto p-4 sm:p-6 lg:p-8 flex-grow flex flex-col items-center justify-center"> {/* Added flex-grow, flex flex-col, items-center, justify-center */}
-        {/* Header */}
-        <div className="mb-12 text-center">
+       <main className="container mx-auto p-4 sm:p-6 lg:p-8 flex-grow flex flex-col items-center">
+        <div className="mb-12 text-center mt-12">
           <h1 className="text-5xl font-extrabold text-gray-900 mb-3">Explore Quizzes</h1>
           <p className="text-xl text-gray-600">Choose a topic to start your learning adventure!</p>
           {user && (
@@ -96,7 +87,6 @@ function QuizzesContent() {
               return (
                 <Link href={`/quizzes/${quiz.id}`} key={quiz.id}>
                   <div className="bg-white rounded-2xl shadow-md overflow-hidden transition-shadow duration-300 hover:shadow-xl cursor-pointer flex flex-col h-full">
-                    {/* Image */}
                     <div className="relative w-full h-48">
                       <Image
                         src={imageSrc}
@@ -106,7 +96,6 @@ function QuizzesContent() {
                       />
                     </div>
 
-                    {/* Quiz info */}
                     <div className="p-6 flex flex-col flex-grow">
                       <p className={`text-sm font-semibold ${colorClass} mb-1`}>{quiz.subject}</p>
                       <h3 className="text-xl font-bold text-gray-800 mb-2">{quiz.title}</h3>

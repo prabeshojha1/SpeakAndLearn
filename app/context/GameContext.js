@@ -3,23 +3,25 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useSupabase } from './SupabaseContext';
 
-const QuizContext = createContext();
+const GameContext = createContext();
 
-export function QuizProvider({ children }) {
-  const [quizzes, setQuizzes] = useState([]);
+export function GameProvider({ children }) {
+  const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { supabase } = useSupabase();
 
-  // Fetch quizzes from database
-  const fetchQuizzes = async () => {
+  // Fetch games from database
+  const fetchGames = async () => {
     try {
       setLoading(true);
       setError(null);
       
+      console.log('Fetching games from database...');
+      
       // First, let's try a simple query without the questions join
       const { data, error } = await supabase
-        .from('quizzes')
+        .from('games')
         .select(`
           id,
           title,
@@ -27,8 +29,6 @@ export function QuizProvider({ children }) {
           category,
           subject,
           difficulty,
-          banner_url,
-          time_per_question,
           is_active,
           created_at,
           question_time_duration
@@ -36,77 +36,46 @@ export function QuizProvider({ children }) {
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
+      console.log('Supabase query result:', { data, error });
+
       if (error) {
         console.error('Supabase error:', error);
         throw error;
       }
 
       if (!data || data.length === 0) {
-        setQuizzes([]);
+        console.log('No games found in database');
+        setGames([]);
         return;
       }
 
       // Transform the data to match the expected format
-      const transformedQuizzes = [];
-      
-      for (const quiz of data) {
-        // Fetch questions for this quiz
-        let questions = [];
-        try {
-          const { data: questionData, error: questionError } = await supabase
-            .from('questions')
-            .select('id, image_url, question_text, correct_answer, order_index')
-            .eq('quiz_id', quiz.id)
-            .order('order_index', { ascending: true });
+      const transformedGames = data.map(game => ({
+        id: game.id,
+        title: game.title,
+        description: game.description || 'No description available',
+        category: game.category,
+        subject: game.subject,
+        difficulty: game.difficulty || 'medium',
+        coverImageUrl: '/placeholder.svg', // Default cover image
+        expectedTimeSec: 300, // Default time
+        questions: [ // Default questions for now since questions table is empty
+          { imageUrl: '/placeholder.svg', description: 'Question 1' },
+          { imageUrl: '/placeholder.svg', description: 'Question 2' },
+          { imageUrl: '/placeholder.svg', description: 'Question 3' },
+          { imageUrl: '/placeholder.svg', description: 'Question 4' }
+        ]
+      }));
 
-          if (questionError) {
-            console.error('Error fetching questions for quiz', quiz.id, ':', questionError);
-          } else {
-            questions = questionData.map(question => ({
-              id: question.id,
-              quiz_id: quiz.id,
-              imageUrl: question.image_url,
-              description: question.question_text || '',
-              answer: question.correct_answer || '',
-              orderIndex: question.order_index
-            }));
-          }
-        } catch (err) {
-          console.error('Error loading questions for quiz', quiz.id, ':', err);
-        }
+      console.log('Transformed games:', transformedGames);
 
-        // If no questions found, use fallback
-        if (questions.length === 0) {
-          questions = [
-            { imageUrl: '/placeholder.svg', description: 'Question 1' },
-            { imageUrl: '/placeholder.svg', description: 'Question 2' },
-            { imageUrl: '/placeholder.svg', description: 'Question 3' },
-            { imageUrl: '/placeholder.svg', description: 'Question 4' }
-          ];
-        }
-
-        transformedQuizzes.push({
-          id: quiz.id,
-          title: quiz.title,
-          description: quiz.description || 'No description available',
-          category: quiz.category,
-          subject: quiz.subject,
-          difficulty: quiz.difficulty || 'medium',
-          coverImageUrl: quiz.banner_url || '/placeholder.svg', // Use banner_url if available
-          bannerUrl: quiz.banner_url, 
-          expectedTimeSec: (quiz.time_per_question || 30) * questions.length, // Total time based on questions
-          timePerQuestion: quiz.time_per_question || 30, // Time per individual question
-          questions: questions
-        });
-      }
-
-      setQuizzes(transformedQuizzes);
+      setGames(transformedGames);
     } catch (err) {
-      console.error('Error fetching quizzes:', err);
+      console.error('Error fetching games:', err);
       setError(err.message);
       
       // Fallback to hardcoded data if database fetch fails
-      const fallbackQuizzes = [
+      const fallbackGames = [
         { 
           id: 1, 
           title: 'Life Cycles of a Plant', 
@@ -173,51 +142,50 @@ export function QuizProvider({ children }) {
         }
       ];
       
-      setQuizzes(fallbackQuizzes);
+      setGames(fallbackGames);
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch quizzes when component mounts
+  // Fetch games when component mounts
   useEffect(() => {
     if (supabase) {
-      fetchQuizzes();
+      fetchGames();
     }
   }, [supabase]);
 
-  const addQuiz = async (quiz) => {
+  const addGame = async (game) => {
     try {
-      const {title, subject, description, bannerUrl, questions, difficulty, timePerQuestion} = quiz ;
-      const newQuiz = {
+      const {title, subject, description, question_time_duration, questions} = game ;
+      const newGame = {
         title,
         category: subject,
         description,
-        banner_url: bannerUrl,
-        difficulty: difficulty?.toLowerCase() || 'medium',
-        time_per_question: timePerQuestion || 30,
-        is_active: true
+        is_active: true,
+        question_time_duration
       }
       const { data, error } = await supabase
-        .from('quizzes')
-        .insert([newQuiz])
+        .from('games')
+        .insert([newGame])
         .select()
         .single();
       
-      // Used data from created quiz to get the ID for the questions
-      for (const [index, questionObj] of questions.entries()) {
+      // Used data from created game to get the ID for the questions
+      console.log('Game created:', data);
+      console.log('Questions to upload:', questions);
+      for (const fileObj of questions) {
         let questionInfo = {
-          quiz_id: data.id,
-          image_url: questionObj.imageUrl || null,
-          correct_answer: questionObj.answer || '',
-          question_text: questionObj.questionText || questionObj.description || '',  
-          order_index: index,
-          text_body: questionObj.questionText || '',
-          question_type: questionObj.question_type || 'image'
+          game_id: data.id,
+          image_url: fileObj.imageUrl,
+          correct_answer: fileObj.answer || '',
+          question_text: description || '',
+          text_body: fileObj.questionText || '',
+          question_type: fileObj.question_type || 'text'
         };
 
         let { _, error } = await supabase
-        .from('questions')
+        .from('game_questions')
         .insert([questionInfo])
         .select();
 
@@ -227,39 +195,38 @@ export function QuizProvider({ children }) {
         }
       }
 
-      await fetchQuizzes();
-      console.log('Quiz added successfully:', data);
+      await fetchGames();
+      console.log('Game added successfully:', data);
       return data;
     } catch (err) {
-      console.error('Error adding quiz:', err);
+      console.error('Error adding game:', err);
       throw err;
     }
   };
   
-  const getQuizById = (id) => {
-    const foundQuiz = quizzes.find(quiz => quiz.id === parseInt(id));
-    return foundQuiz;
+  const getGameById = (id) => {
+    return games.find(game => game.id === parseInt(id));
   };
 
-  const getQuizzesByDifficulty = (difficulty) => {
-    return quizzes.filter(quiz => quiz.difficulty === difficulty);
+  const getGamesByDifficulty = (difficulty) => {
+    return games.filter(game => game.difficulty === difficulty);
   };
 
-  const getQuizzesByCategory = (category) => {
-    return quizzes.filter(quiz => quiz.category === category);
+  const getGamesByCategory = (category) => {
+    return games.filter(game => game.category === category);
   };
 
-  const refreshQuizzes = () => {
-    fetchQuizzes();
+  const refreshGames = () => {
+    fetchGames();
   };
 
-  const deleteQuiz = async (id) => {
+  const deleteGame = async (id) => {
   try {
-    // 1. Get all questions for the quiz
+    // 1. Get all questions for the game
     const { data: questions, error: fetchError } = await supabase
-      .from('questions')
+      .from('game_questions')
       .select('id, image_url')
-      .eq('quiz_id', id);
+      .eq('game_id', id);
 
     if (fetchError) {
       console.error('Error fetching questions for deletion:', fetchError);
@@ -267,12 +234,12 @@ export function QuizProvider({ children }) {
     }
 
     // 2. Extract storage paths from image URLs
-    console.log(`Questions to delete for quiz ${id}:`, questions);
+    console.log(`Questions to delete for game ${id}:`, questions);
     const pathsToDelete = questions
       .map((q) => {
         try {
           const url = new URL(q.image_url);
-          const prefix = '/storage/v1/object/public/questions/'
+          const prefix = '/storage/v1/object/public/game-questions/'
           const pathStartIndex = url.pathname.indexOf(prefix);
           const path = url.pathname.slice(pathStartIndex + prefix.length);
           console.log(`Path to delete: ${path}`);
@@ -290,7 +257,7 @@ export function QuizProvider({ children }) {
     if (pathsToDelete.length > 0) {
       const { error: storageError } = await supabase
         .storage
-        .from('questions') 
+        .from('game-questions')
         .remove(pathsToDelete);
 
       if (storageError) {
@@ -299,44 +266,43 @@ export function QuizProvider({ children }) {
       }
     }
 
-    // 4. Delete questions related to quiz
+    // 4. Delete questions related to game
     const { error: questionsDeleteError } = await supabase
-      .from('questions')
+      .from('game_questions')
       .delete()
-      .eq('quiz_id', id);
+      .eq('game_id', id);
 
     if (questionsDeleteError) {
       console.error('Error deleting questions:', questionsDeleteError);
       throw questionsDeleteError;
     }
 
-    // 5. Delete quiz itself
-    const { error: quizDeleteError } = await supabase
-      .from('quizzes')
+    // 5. Delete game itself
+    const { error: gameDeleteError } = await supabase
+      .from('games')
       .delete()
       .eq('id', id);
 
-    if (quizDeleteError) {
-      console.error('Error deleting quiz:', quizDeleteError);
-      throw quizDeleteError;
+    if (gameDeleteError) {
+      console.error('Error deleting game:', gameDeleteError);
+      throw gameDeleteError;
     }
 
  
-    await fetchQuizzes();
-    console.log(`Quiz ${id} and related questions/files deleted.`);
+    await fetchGames();
+    console.log(`Game ${id} and related questions/files deleted.`);
     } catch (err) {
-      console.error('Error deleting quiz:', err); 
+      console.error('Error deleting game:', err); 
       throw err;
     }
   }
 
-  const getQuestionsByQuizId = async (quizId) => {
+  const getQuestionsByGameId = async (gameId) => {
     try {
       const { data, error } = await supabase
-        .from('questions')
-        .select('id, image_url, question_text, correct_answer, order_index, text_body, question_type')
-        .eq('quiz_id', quizId)
-        .order('order_index', { ascending: true });
+        .from('game_questions')
+        .select('id, image_url, question_text, correct_answer, text_body, question_type')
+        .eq('game_id', gameId);
 
       if (error) {
         console.error('Error fetching questions:', error);
@@ -345,14 +311,12 @@ export function QuizProvider({ children }) {
 
       return data.map(question => ({
         id: question.id,
-        quiz_id: quizId,
+        game_id: gameId,
         imageUrl: question.image_url,
         description: question.question_text || '',
         answer: question.correct_answer || '',
-        orderIndex: question.order_index,
         text_body: question.text_body || '',
         question_type: question.question_type || 'image'
-
       }));
     } catch (err) {
       console.error('Error getting questions:', err);
@@ -361,27 +325,27 @@ export function QuizProvider({ children }) {
   }
 
   return (
-    <QuizContext.Provider value={{ 
-      quizzes, 
+    <GameContext.Provider value={{ 
+      games, 
       loading,
       error,
-      addQuiz, 
-      getQuizById, 
-      getQuizzesByDifficulty, 
-      getQuizzesByCategory,
-      refreshQuizzes,
-      deleteQuiz,
-      getQuestionsByQuizId
+      addGame, 
+      getGameById, 
+      getGamesByDifficulty, 
+      getGamesByCategory,
+      refreshGames,
+      deleteGame,
+      getQuestionsByGameId
     }}>
       {children}
-    </QuizContext.Provider>
+    </GameContext.Provider>
   );
 }
 
-export function useQuiz() {
-  const context = useContext(QuizContext);
+export function useGame() {
+  const context = useContext(GameContext);
   if (!context) {
-    throw new Error('useQuiz must be used within a QuizProvider');
+    throw new Error('useGame must be used within a GameProvider');
   }
   return context;
 } 
