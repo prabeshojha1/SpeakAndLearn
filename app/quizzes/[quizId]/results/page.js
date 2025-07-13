@@ -149,9 +149,7 @@ function QuizResultsContent({ params }) {
             <div className="text-center">
               <h1 className="text-4xl font-extrabold text-gray-900 mb-2">Quiz Results</h1>
               <h2 className="text-2xl text-gray-600 mb-2">{quiz.title}</h2>
-              {user && (
-                <p className="text-lg text-gray-600">Results for: {user.email}</p>
-              )}
+
             </div>
           </div>
 
@@ -189,10 +187,15 @@ function QuizResultsContent({ params }) {
                     <p className="text-sm text-gray-600">Total Questions</p>
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-800 capitalize">
+                    <div className={`inline-block px-4 py-2 rounded-full text-xl font-bold capitalize ${
+                      gameSession.evaluation_results.average_score >= 80 ? 'bg-green-100 text-green-800' :
+                      gameSession.evaluation_results.average_score >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                      gameSession.evaluation_results.average_score >= 40 ? 'bg-orange-100 text-orange-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
                       {gameSession.evaluation_results.performance_category?.replace('_', ' ') || 'N/A'}
-                    </p>
-                    <p className="text-sm text-gray-600">Performance Level</p>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-2">Performance Level</p>
                   </div>
                 </div>
 
@@ -204,10 +207,6 @@ function QuizResultsContent({ params }) {
                 )}
               </div>
             )}
-
-            <div className="text-center text-sm text-gray-500">
-              <p>{recordings.length} voice recordings saved</p>
-            </div>
           </div>
 
           {/* Individual Question Results */}
