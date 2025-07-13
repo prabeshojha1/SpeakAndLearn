@@ -187,15 +187,20 @@ function QuizResultsContent({ params }) {
                     <p className="text-sm text-gray-600">Total Questions</p>
                   </div>
                   <div>
-                    <div className={`inline-block px-4 py-2 rounded-full text-xl font-bold capitalize ${
-                      gameSession.evaluation_results.average_score >= 80 ? 'bg-green-100 text-green-800' :
-                      gameSession.evaluation_results.average_score >= 60 ? 'bg-yellow-100 text-yellow-800' :
-                      gameSession.evaluation_results.average_score >= 40 ? 'bg-orange-100 text-orange-800' :
-                      'bg-red-100 text-red-800'
+                    <p className={`text-2xl font-bold capitalize ${
+                      gameSession.evaluation_results.average_score >= 80 ? 'text-green-600' :
+                      gameSession.evaluation_results.average_score >= 60 ? 'text-yellow-600' :
+                      gameSession.evaluation_results.average_score >= 40 ? 'text-orange-600' :
+                      'text-red-600'
                     }`}>
                       {gameSession.evaluation_results.performance_category?.replace('_', ' ') || 'N/A'}
-                    </div>
-                    <p className="text-sm text-gray-600 mt-2">Performance Level</p>
+                    </p>
+                    <p className={`text-sm ${
+                      gameSession.evaluation_results.average_score >= 80 ? 'text-green-500' :
+                      gameSession.evaluation_results.average_score >= 60 ? 'text-yellow-500' :
+                      gameSession.evaluation_results.average_score >= 40 ? 'text-orange-500' :
+                      'text-red-500'
+                    }`}>Performance Level</p>
                   </div>
                 </div>
 
@@ -250,9 +255,9 @@ function QuizResultsContent({ params }) {
                       </div>
                     )}
 
-                    <div className="mt-4 text-sm text-gray-500">
+                    {/* <div className="mt-4 text-sm text-gray-500">
                       <p>Recorded: {new Date(recording.recorded_at).toLocaleString()}</p>
-                    </div>
+                    </div> */}
                   </div>
                 ))}
               </div>
