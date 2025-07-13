@@ -7,6 +7,12 @@ import StudentFooter from '@/app/components/StudentFooter';
 // CURRENTLY HARDCODED
 const games = [
   {
+    title: "Adjective Challenge",
+    description: "Look at images and generate as many descriptive adjectives as possible! Your creativity and accuracy will be evaluated.",
+    image: "/pictures/fruits-plate-green-plum-strawberry-banana-kiwi-watermelon-orange-apple_72594-822.avif",
+    link: "/games/adjective-challenge"
+  },
+  {
     title: "Metaphor Match-Up",
     description: "Match the metaphors to their meanings in this fast-paced challenge!",
     image: "/pictures/superhero-child-jumping-against-grey-concrete-wall_411285-304.avif",

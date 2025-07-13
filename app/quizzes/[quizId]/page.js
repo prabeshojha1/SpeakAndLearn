@@ -66,12 +66,12 @@ function QuizDetailContent({ params }) {
                 />
               )}
               {/* Backdrop blur overlay */}
-              <div className="absolute inset-0 backdrop-blur-sm bg-black/20"></div>
+              <div className="absolute inset-0 backdrop-blur-sm bg-black/40"></div>
               {/* Text overlay */}
               <div className="absolute inset-0 flex items-center justify-center z-10">
-                <div className="text-center text-white px-6">
-                  <h2 className="text-3xl font-bold mb-2 drop-shadow-lg">{quiz.title}</h2>
-                  <p className="text-lg drop-shadow-md">{quiz.description || 'No description available'}</p>
+                <div className="text-center bg-white/90 backdrop-blur-sm rounded-xl px-8 py-6 shadow-lg">
+                  <h2 className="text-3xl font-bold mb-2 text-gray-800">{quiz.title}</h2>
+                  <p className="text-lg text-gray-600">{quiz.description || 'No description available'}</p>
                 </div>
               </div>
             </div>
