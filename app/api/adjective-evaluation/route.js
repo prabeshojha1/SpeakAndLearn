@@ -9,26 +9,27 @@ const openai = new OpenAI({
 
 export async function POST(request) {
   try {
-    const { imageUrl, transcript, timeSpent } = await request.json();
+    const { imageUrl, transcript, timeSpent, imageDescription } = await request.json();
 
-    if (!imageUrl || !transcript) {
+    if (!transcript) {
       return NextResponse.json(
-        { error: 'Image URL and transcript are required' },
+        { error: 'Transcript is required' },
         { status: 400 }
       );
     }
 
-    // Create a prompt for evaluating the transcript
+    // Create a prompt for evaluating the transcript using the image description
     const prompt = `
     You are an expert educator evaluating a student's voice response for an adjective generation challenge. 
 
     The student was shown an image and asked to speak as many adjectives as possible to describe it in 90 seconds.
 
+    Image description: "${imageDescription || 'An image for adjective generation'}"
     Student's spoken response: "${transcript}"
 
     Please evaluate their response and provide:
     1. A score out of 10 based on:
-      - Relevance to the image (40%)
+      - Relevance to the image described (40%)
       - Creativity and variety of adjectives (30%)
       - Grammar and appropriateness (30%)
       
@@ -37,7 +38,7 @@ export async function POST(request) {
       - Good (relevant and appropriate)
       - Needs improvement (less relevant or incorrect)
       
-    3. Suggest 3-5 additional adjectives they could have used
+    3. Suggest 3-5 additional adjectives they could have used for this type of image
     4. Provide encouraging feedback
     5. Count the total number of adjectives found in their response
 
@@ -55,7 +56,7 @@ export async function POST(request) {
       "total_adjectives": number
     }
     
-    Note: Extract adjectives from the transcript even if they're used in sentences or phrases. Focus on descriptive words that relate to the image.
+    Note: Extract adjectives from the transcript even if they're used in sentences or phrases. Focus on descriptive words that relate to the image description provided.
     `;
 
     const response = await openai.chat.completions.create({
@@ -63,17 +64,46 @@ export async function POST(request) {
       messages: [
         {
           role: "user",
-          content: [
-            { type: "text", text: prompt },
-            { type: "image_url", image_url: { url: imageUrl } }
-          ]
+          content: prompt
         }
       ],
       max_tokens: 1000,
       temperature: 0.7,
+      response_format: { type: "json_object" }
     });
 
-    const evaluation = JSON.parse(response.choices[0].message.content);
+    let evaluation;
+    try {
+      // Clean the response content to remove any markdown formatting
+      let content = response.choices[0].message.content.trim();
+      
+      // Remove markdown code blocks if present
+      if (content.startsWith('```json')) {
+        content = content.replace(/```json\n?/, '').replace(/\n?```$/, '');
+      }
+      if (content.startsWith('```')) {
+        content = content.replace(/```\n?/, '').replace(/\n?```$/, '');
+      }
+      
+      evaluation = JSON.parse(content);
+    } catch (parseError) {
+      console.error('JSON parsing error:', parseError);
+      console.error('Raw content:', response.choices[0].message.content);
+      
+      // Fallback evaluation if JSON parsing fails
+      evaluation = {
+        score: 5,
+        feedback: "We were able to process your response, but encountered a technical issue with the detailed evaluation.",
+        adjective_breakdown: {
+          excellent: [],
+          good: [],
+          needs_improvement: []
+        },
+        suggested_additions: ["descriptive", "colorful", "interesting", "unique", "detailed"],
+        encouragement: "Keep practicing! Describing images with adjectives helps improve your vocabulary and observation skills.",
+        total_adjectives: transcript.split(/\s+/).filter(word => word.length > 2).length
+      };
+    }
     
     // Add some additional metadata
     evaluation.time_spent = timeSpent;
