@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuiz } from '@/app/context/QuizContext';
+import { useGame } from '@/app/context/GameContext';
 import ImageDropzone from '@/app/components/ImageDropzone';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/lib/supabase'
@@ -17,26 +17,26 @@ const difficultyColorClasses = {
     Hard: 'text-red-700',
   };
 
-export default function NewQuizPage() {
-  const [quizFiles, setQuizFiles] = useState([]);
+export default function NewGamePage() {
+  const [gameFiles, setGameFiles] = useState([]);
   const [bannerFile, setBannerFile] = useState(null);
   const [questionType, setQuestionType] = useState('image');
-  const [textQuestions, setTextQuestions] = useState([{ question: '', answer: '' }]);
+  const [textQuestions, setTextQuestions] = useState([{ question: '', answer: ''}]);
   const [difficulty, setDifficulty] = useState('Easy');
   const [timePerQuestion, setTimePerQuestion] = useState(30); // Default 30 seconds per question
-  const { addQuiz, refreshQuizzes } = useQuiz();
+  const { addGame, refreshGames } = useGame();
   const router = useRouter();
 
-  const handleQuizFilesChange = (files) => {
-    setQuizFiles(files);
+  const handleGameFilesChange = (files) => {
+    setGameFiles(files);
   };
 
-  const handleBannerFileChange = (file) => {
-    setBannerFile(file || null);
+  const handleBannerFileChange = (files) => {
+    setBannerFile(files[0] || null);
   };
 
   const handleAddTextQuestion = () => {
-    setTextQuestions([...textQuestions, { question: '', answer: '' }]);
+    setTextQuestions([...textQuestions, { question: '', answer: ''}]);
   };
 
   const handleRemoveTextQuestion = (index) => {
@@ -65,14 +65,14 @@ export default function NewQuizPage() {
             const filePath = `banners/${fileName}`;
 
             const { data: uploadData, error: uploadError } = await supabase.storage
-              .from('questions')
+              .from('game-questions')
               .upload(filePath, bannerFile.file);
 
             if (uploadError) {
               console.error('Banner upload failed:', uploadError.message);
             } else {
                 const { data: publicData } = supabase.storage
-                .from('questions')
+                .from('game-questions')
                 .getPublicUrl(filePath);
                 bannerImageUrl = publicData.publicUrl;
             }
@@ -80,15 +80,15 @@ export default function NewQuizPage() {
 
         if (questionType === 'image') {
             const uploadedQuestions = await Promise.all(
-            quizFiles.map(async (item) => {
+            gameFiles.map(async (item) => {
                 if (!item.file) return null;
 
                 const fileExt = item.file.name.split('.').pop();
                 const fileName = `${uuidv4()}.${fileExt}`;
-                const filePath = `quizzes/${fileName}`;
+                const filePath = `games/${fileName}`;
 
                 const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('questions')
+                .from('game-questions')
                 .upload(filePath, item.file);
 
                 if (uploadError) {
@@ -97,13 +97,13 @@ export default function NewQuizPage() {
                 }
 
                 const { data: publicData } = supabase.storage
-                .from('questions')
+                .from('game-questions')
                 .getPublicUrl(filePath);
 
                 return {
                 imageUrl: publicData.publicUrl,
                 answer: item.description || '',
-                question_type: questionType || 'image'
+                question_type: questionType
                 };
             })
             );
@@ -112,11 +112,11 @@ export default function NewQuizPage() {
             questions = textQuestions.map(q => ({
             questionText: q.question,
             answer: q.answer,
-            question_type: questionType || 'image'
+            question_type: questionType
           }));
         }
 
-        const newQuiz = {
+        const newGame = {
             title: formData.get('title'),
             subject: formData.get('subject'),
             description: formData.get('description'),
@@ -126,12 +126,12 @@ export default function NewQuizPage() {
             questions,
         };
 
-        addQuiz(newQuiz);
-        refreshQuizzes();
-        router.push('/admin/quizzes');
+        addGame(newGame);
+        refreshGames();
+        router.push('/admin/games');
     }
     catch (err) {
-        console.error('Quiz creation failed:', err);
+        console.error('Game creation failed:', err);
       }
   }
 
@@ -140,10 +140,10 @@ export default function NewQuizPage() {
       <header className="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/admin/quizzes" className="text-blue-600 hover:text-blue-800 font-semibold">
+            <Link href="/admin/games" className="text-blue-600 hover:text-blue-800 font-semibold">
               &larr; Cancel
             </Link>
-            <h1 className="text-2xl font-bold">Create New Quiz</h1>
+            <h1 className="text-2xl font-bold">Create New Game</h1>
           </div>
         </div>
       </header>
@@ -153,7 +153,7 @@ export default function NewQuizPage() {
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
               <div>
-                <label htmlFor="title" className="block text-gray-800 font-semibold mb-2">Quiz Title</label>
+                <label htmlFor="title" className="block text-gray-800 font-semibold mb-2">Game Title</label>
                 <input
                   type="text"
                   id="title"
@@ -178,7 +178,7 @@ export default function NewQuizPage() {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="description" className="block text-gray-800 font-semibold mb-2">Quiz Description</label>
+              <label htmlFor="description" className="block text-gray-800 font-semibold mb-2">Game Description</label>
               <textarea
                 id="description"
                 name="description"
@@ -190,9 +190,9 @@ export default function NewQuizPage() {
 
             <div className="mb-4">
               <label className="block text-gray-800 font-semibold mb-2">Banner Image</label>
-              <ImageDropzone onFilesChange={handleBannerFileChange} single={true}/>
+              <ImageDropzone onFilesChange={handleBannerFileChange} />
               <p className="text-sm text-gray-600 mt-2">
-                Upload a banner image for your quiz. This will be displayed on the quiz card and details page.
+                Upload a banner image for your game. This will be displayed on the game card and details page.
               </p>
             </div>
 
@@ -264,15 +264,15 @@ export default function NewQuizPage() {
 
             {questionType === 'image' ? (
                 <div className="mb-4">
-                <label className="block text-gray-800 font-semibold mb-2">Quiz Questions (Images & Answers)</label>
-                <ImageDropzone onFilesChange={handleQuizFilesChange} />
+                <label className="block text-gray-800 font-semibold mb-2">Game Questions (Images & Answers)</label>
+                <ImageDropzone onFilesChange={handleGameFilesChange} />
                 <p className="text-sm text-gray-700 mt-2">
                     The descriptions you enter will be used as the 'correct answer' for the AI to grade against.
                 </p>
                 </div>
             ) : (
                 <div className="mb-4">
-                    <label className="block text-gray-800 font-semibold mb-2">Quiz Questions (Text & Answers)</label>
+                    <label className="block text-gray-800 font-semibold mb-2">Game Questions (Text & Answers)</label>
                     <div className="space-y-4">
                         {textQuestions.map((q, index) => (
                             <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
@@ -337,7 +337,7 @@ export default function NewQuizPage() {
                 type="submit"
                 className="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition-transform hover:scale-105"
               >
-                Create Quiz
+                Create Game
               </button>
             </div>
           </form>

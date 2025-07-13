@@ -3,6 +3,7 @@ import "./globals.css";
 import { QuizProvider } from "./context/QuizContext";
 import { SupabaseProvider } from "./context/SupabaseContext";
 import MainLayout from "./components/MainLayout";
+import { GameProvider } from './context/GameContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +28,9 @@ export default function RootLayout({ children }) {
       >
         <SupabaseProvider>
           <QuizProvider>
-            <MainLayout>{children}</MainLayout>
+            <GameProvider> 
+              <MainLayout>{children}</MainLayout>
+            </GameProvider>
           </QuizProvider>
         </SupabaseProvider>
       </body>

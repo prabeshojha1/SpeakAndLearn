@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { useQuiz } from '@/app/context/QuizContext';
+import { useGame } from '@/app/context/GameContext';
 import { useEffect, useState } from 'react';
 import { use } from 'react';
 
@@ -15,38 +15,38 @@ const subjectTextColors = {
   Default: 'text-gray-600'
 };
 
-export default function ViewQuizPage({ params }) {
-  const { quizId } = use(params);
-  const { getQuizById, getQuestionsByQuizId } = useQuiz();
-  const [quiz, setQuiz] = useState(null);
+export default function ViewGamePage({ params }) {
+  const { gameId } = use(params);
+  const { getGameById, getQuestionsByGameId } = useGame();
+  const [game, setGame] = useState(null);
   const [questions, setQuestions] = useState([]);
 
   useEffect(() => {
-    if (!quizId) return;
+    if (!gameId) return;
 
-    const fetchQuizAndQuestions = async () => {
-      const foundQuiz = getQuizById(quizId);
-      setQuiz(foundQuiz);
+    const fetchGameAndQuestions = async () => {
+      const foundGame = getGameById(gameId);
+      setGame(foundGame);
 
-      if (foundQuiz) {
-        const questions = await getQuestionsByQuizId(quizId);
+      if (foundGame) {
+        const questions = await getQuestionsByGameId(gameId);
         setQuestions(questions);
       }
     }
 
-    fetchQuizAndQuestions();
+    fetchGameAndQuestions();
     
-  }, [quizId, getQuizById, getQuestionsByQuizId]);
+  }, [gameId, getGameById, getQuestionsByGameId]);
 
-  if (!quiz) {
+  if (!game) {
     return (
         <div className="min-h-screen bg-blue-50 flex items-center justify-center"> 
-            <p className="text-xl text-blue-500">Loading quiz...</p> 
+            <p className="text-xl text-blue-500">Loading game...</p> 
         </div>
     );
   }
 
-  console.log("Quiz Data:", quiz);
+  console.log("Game Data:", game);
   console.log("Questions Data:", questions);
 
   return (
@@ -54,21 +54,21 @@ export default function ViewQuizPage({ params }) {
        <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
-                    <Link href="/admin/quizzes" className="text-blue-500 hover:text-blue-700 font-bold"> 
-                        &larr; Back to Quizzes
+                    <Link href="/admin/games" className="text-blue-500 hover:text-blue-700 font-bold"> 
+                        &larr; Back to Games
                     </Link>
-                    <h1 className={`text-2xl font-bold ${subjectTextColors[quiz.subject] || subjectTextColors.Default}`}>{quiz.title}</h1>
+                    <h1 className={`text-2xl font-bold ${subjectTextColors[game.subject] || subjectTextColors.Default}`}>{game.title}</h1>
                 </div>
             </div>
       </header>
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Images in this Quiz</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Images in this Game</h2>
             {questions.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {questions.map((q, index) => (
                         <div key={index} className="border rounded-lg p-3 bg-gray-50">
-                          {q.question_type == 'image' ? (
+                            {q.question_type == 'image' ? (
                               <img src={q.imageUrl} alt={`Question ${index + 1}`} className="w-full h-40 object-cover rounded-lg bg-gray-200 mb-3" />
                             ) : (
                               <p className="text-sm text-gray-700"><span className="font-bold">Text Body:</span> {q.text_body}</p>
@@ -78,7 +78,7 @@ export default function ViewQuizPage({ params }) {
                     ))}
                 </div>
             ) : (
-                <p>No images have been added to this quiz yet.</p>
+                <p>No images have been added to this game yet.</p>
             )}
         </div>
       </main>
